@@ -1,0 +1,55 @@
+package tobyspring.community.domain;
+
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import tobyspring.community.*;
+
+public class MemberTest {
+    Member member;
+
+    @BeforeEach
+    public void setUp() {
+        member = Member.register(new RegisterMemberRequest(new Email("qwer@naver.com"), "abcd", "qwe123"), new PasswordEncoder());
+    }
+
+    @Test
+    void 회원_등록() {
+        Assertions.assertThat(member.getNickname()).isNotNull();
+    }
+
+    @Test
+    void 회원_등록완료() {
+        member.activate();
+
+        Assertions.assertThat(member.getStatus()).isEqualTo(MemberStatus.ACTIVE);
+    }
+
+    @Test
+    void 회원_탈퇴() {
+        member.activate();
+
+        Assertions.assertThat(member.getStatus()).isEqualTo(MemberStatus.ACTIVE);
+
+        member.deactivate();
+
+        Assertions.assertThat(member.getStatus()).isEqualTo(MemberStatus.DEACTIVATED);
+    }
+
+    @Test
+    void 회원_비밀번호_수정() {
+        member.activate();
+
+        member.changePassword("qwer1234!", new PasswordEncoder());
+
+        Assertions.assertThat(member.getStatus()).isEqualTo(MemberStatus.ACTIVE);
+        Assertions.assertThat(member.getPasswordHash()).isEqualTo(new PasswordEncoder().encode("qwer1234!"));
+    }
+
+    @Test
+    void 회원_비밀번호_수정_실패_pending() {
+        Assertions.assertThatThrownBy(() -> member.changePassword("qwer1234!", new PasswordEncoder()),
+                "Member is not active"
+        );
+    }
+}

@@ -16,7 +16,7 @@ public class Member {
 
     private MemberStatus status;
 
-    public Member register(RegisterMemberRequest registerRequest, PasswordEncoder passwordEncoder) {
+    public static Member register(RegisterMemberRequest registerRequest, PasswordEncoder passwordEncoder) {
         Member member = new Member();
 
         member.email = registerRequest.email();
@@ -27,21 +27,21 @@ public class Member {
         return member;
     }
 
-    public void activate(Member member) {
-        member.status = MemberStatus.ACTIVE;
+    public void activate() {
+        this.status = MemberStatus.ACTIVE;
     }
 
-    public void deactivate(Member member) {
-        Assert.state(member.status == MemberStatus.ACTIVE, "Member is not active");
-        member.status = MemberStatus.DEACTIVATED;
+    public void deactivate() {
+        Assert.state(this.status == MemberStatus.ACTIVE, "Member is not active");
+        this.status = MemberStatus.DEACTIVATED;
     }
 
     public boolean verifyPassword(String password, PasswordEncoder passwordEncoder) {
         return passwordEncoder.match(password, passwordHash);
     }
 
-    public void changePassword(Member member, String newPassword, PasswordEncoder passwordEncoder) {
-        Assert.state(member.status == MemberStatus.ACTIVE, "Member is not active");
+    public void changePassword(String newPassword, PasswordEncoder passwordEncoder) {
+        Assert.state(this.status == MemberStatus.ACTIVE, "Member is not active");
         this.passwordHash = passwordEncoder.encode(newPassword);
     }
 }
