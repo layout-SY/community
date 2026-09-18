@@ -1,16 +1,24 @@
 package tobyspring.community.domain;
 
+import lombok.RequiredArgsConstructor;
 import org.assertj.core.api.Assertions;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import tobyspring.community.*;
+import tobyspring.community.application.provided.Email;
+import tobyspring.community.application.required.PasswordEncode;
+import tobyspring.community.application.required.PasswordEncodeImpl;
 
+import static tobyspring.community.domain.MemberFixture.getRegisterRequest;
+
+@RequiredArgsConstructor
 public class MemberTest {
-    Member member;
+    private Member member;
+    private final PasswordEncode passwordEncode;
 
     @BeforeEach
     public void setUp() {
-        member = Member.register(new RegisterMemberRequest(new Email("qwer@naver.com"), "abcd", "qwe123"), new PasswordEncoder());
+        member = Member.register(getRegisterRequest(), passwordEncode);
     }
 
     @Test
@@ -40,15 +48,15 @@ public class MemberTest {
     void 회원_비밀번호_수정() {
         member.activate();
 
-        member.changePassword("qwer1234!", new PasswordEncoder());
+        member.changePassword("qwer1234!", passwordEncode);
 
         Assertions.assertThat(member.getStatus()).isEqualTo(MemberStatus.ACTIVE);
-        Assertions.assertThat(member.getPasswordHash()).isEqualTo(new PasswordEncoder().encode("qwer1234!"));
+        Assertions.assertThat(member.getPasswordHash()).isEqualTo(passwordEncode.encode("qwer1234!"));
     }
 
     @Test
     void 회원_비밀번호_수정_실패_pending() {
-        Assertions.assertThatThrownBy(() -> member.changePassword("qwer1234!", new PasswordEncoder()),
+        Assertions.assertThatThrownBy(() -> member.changePassword("qwer1234!", passwordEncode),
                 "Member is not active"
         );
     }
