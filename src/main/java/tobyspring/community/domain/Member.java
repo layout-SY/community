@@ -1,8 +1,11 @@
-package tobyspring.community;
+package tobyspring.community.domain;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.util.Assert;
+import tobyspring.community.application.provided.Email;
+import tobyspring.community.application.required.PasswordEncode;
+import tobyspring.community.application.required.PasswordEncodeImpl;
 
 @NoArgsConstructor
 @Getter
@@ -16,10 +19,10 @@ public class Member {
 
     private MemberStatus status;
 
-    public static Member register(RegisterMemberRequest registerRequest, PasswordEncoder passwordEncoder) {
+    public static Member register(RegisterMemberRequest registerRequest, PasswordEncode passwordEncoder) {
         Member member = new Member();
 
-        member.email = registerRequest.email();
+        member.email = new Email(registerRequest.email());
         member.nickname = registerRequest.nickname();
         member.passwordHash = passwordEncoder.encode(registerRequest.password());
         member.status = MemberStatus.PENDING;
@@ -36,11 +39,11 @@ public class Member {
         this.status = MemberStatus.DEACTIVATED;
     }
 
-    public boolean verifyPassword(String password, PasswordEncoder passwordEncoder) {
+    public boolean verifyPassword(String password, PasswordEncode passwordEncoder) {
         return passwordEncoder.match(password, passwordHash);
     }
 
-    public void changePassword(String newPassword, PasswordEncoder passwordEncoder) {
+    public void changePassword(String newPassword, PasswordEncode passwordEncoder) {
         Assert.state(this.status == MemberStatus.ACTIVE, "Member is not active");
         this.passwordHash = passwordEncoder.encode(newPassword);
     }
