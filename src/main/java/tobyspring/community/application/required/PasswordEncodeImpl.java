@@ -1,6 +1,9 @@
-package tobyspring.community;
+package tobyspring.community.application.required;
 
-public class PasswordEncoder {
+import org.springframework.stereotype.Component;
+
+@Component
+public class PasswordEncodeImpl implements PasswordEncode{
     public String encode(String password) {
         return password.toUpperCase();
     }
