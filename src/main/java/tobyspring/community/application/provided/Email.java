@@ -1,8 +1,7 @@
-package tobyspring.community;
+package tobyspring.community.application.provided;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.util.Assert;
 
 import java.util.regex.Pattern;
 
