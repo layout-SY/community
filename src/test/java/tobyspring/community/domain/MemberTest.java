@@ -5,19 +5,21 @@ import org.assertj.core.api.Assertions;
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
 import tobyspring.community.application.provided.Email;
 import tobyspring.community.application.required.PasswordEncode;
 import tobyspring.community.application.required.PasswordEncodeImpl;
 
+import static tobyspring.community.domain.MemberFixture.createPasswordEncoder;
 import static tobyspring.community.domain.MemberFixture.getRegisterRequest;
 
-@RequiredArgsConstructor
 public class MemberTest {
     private Member member;
-    private final PasswordEncode passwordEncode;
+    private PasswordEncodeImpl passwordEncode;
 
     @BeforeEach
     public void setUp() {
+        passwordEncode = createPasswordEncoder();
         member = Member.register(getRegisterRequest(), passwordEncode);
     }
 
