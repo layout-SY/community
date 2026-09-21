@@ -1,4 +1,4 @@
-package tobyspring.community.application.required;
+package tobyspring.community.domain;
 
 public interface PasswordEncode {
     String encode(String password);

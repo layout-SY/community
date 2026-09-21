@@ -1,4 +1,4 @@
-package tobyspring.community.application.provided;
+package tobyspring.community.domain;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

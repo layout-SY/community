@@ -3,9 +3,6 @@ package tobyspring.community.domain;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.util.Assert;
-import tobyspring.community.application.provided.Email;
-import tobyspring.community.application.required.PasswordEncode;
-import tobyspring.community.application.required.PasswordEncodeImpl;
 
 @NoArgsConstructor
 @Getter

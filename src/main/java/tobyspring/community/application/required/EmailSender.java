@@ -1,5 +1,7 @@
 package tobyspring.community.application.required;
 
+import tobyspring.community.domain.Email;
+
 public interface EmailSender {
-    boolean send(String email, String subject, String body);
+    boolean send(Email email, String subject, String body);
 }

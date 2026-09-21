@@ -1,14 +1,8 @@
 package tobyspring.community.domain;
 
-import lombok.RequiredArgsConstructor;
 import org.assertj.core.api.Assertions;
-import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import tobyspring.community.application.provided.Email;
-import tobyspring.community.application.required.PasswordEncode;
-import tobyspring.community.application.required.PasswordEncodeImpl;
 
 import static tobyspring.community.domain.MemberFixture.createPasswordEncoder;
 import static tobyspring.community.domain.MemberFixture.getRegisterRequest;

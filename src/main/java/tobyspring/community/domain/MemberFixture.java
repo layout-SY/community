@@ -1,8 +1,6 @@
 package tobyspring.community.domain;
 
 import org.jspecify.annotations.NonNull;
-import tobyspring.community.application.provided.Email;
-import tobyspring.community.application.required.PasswordEncodeImpl;
 
 public class MemberFixture {
     public static @NonNull RegisterMemberRequest getRegisterRequest() {

@@ -1,7 +1,5 @@
-package tobyspring.community.application.required;
+package tobyspring.community.domain;
 
-import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
