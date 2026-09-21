@@ -9,7 +9,7 @@ import static tobyspring.community.domain.MemberFixture.getRegisterRequest;
 
 public class MemberTest {
     private Member member;
-    private PasswordEncodeImpl passwordEncode;
+    private PasswordEncode passwordEncode;
 
     @BeforeEach
     public void setUp() {
