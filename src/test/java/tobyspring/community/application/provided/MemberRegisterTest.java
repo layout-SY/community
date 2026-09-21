@@ -1,6 +1,7 @@
 package tobyspring.community.application.provided;
 
 import jakarta.transaction.Transactional;
+import jakarta.validation.ValidationException;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,6 +25,19 @@ record MemberRegisterTest(MemberRegister memberRegister) {
 
         Assertions.assertThat(member).isNotNull();
         Assertions.assertThat(member.getStatus()).isEqualTo(MemberStatus.PENDING);
+    }
+
+    @Test
+    void 회원_등록_실패_invalidEmail() {
+        memberRequestValidationFail(new RegisterMemberRequest("invalid email", "zxcv", "password"));
+        memberRequestValidationFail(new RegisterMemberRequest("qwer1234@naver.com", "zxcvasdfqwer", "password"));
+        memberRequestValidationFail(new RegisterMemberRequest("qwer1234@naver.com", "zxcv", "passwordpasswordpassword"));
+    }
+
+    private void memberRequestValidationFail(RegisterMemberRequest checker) {
+        Assertions.assertThatThrownBy(() ->
+                memberRegister.register(checker))
+                .isInstanceOf(ValidationException.class);
     }
 
     @Test

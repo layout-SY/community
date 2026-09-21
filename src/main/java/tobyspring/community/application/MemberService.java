@@ -18,6 +18,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Validated
 public class MemberService implements MemberRegister {
     private final MemberRepository memberRepository;
     private final PasswordEncode passwordEncode;

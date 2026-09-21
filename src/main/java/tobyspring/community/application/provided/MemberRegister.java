@@ -1,8 +1,9 @@
 package tobyspring.community.application.provided;
 
+import jakarta.validation.Valid;
 import tobyspring.community.domain.Member;
 import tobyspring.community.domain.RegisterMemberRequest;
 
 public interface MemberRegister {
-    Member register(RegisterMemberRequest registerMemberRequest);
+    Member register(@Valid RegisterMemberRequest registerMemberRequest);
 }
