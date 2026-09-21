@@ -1,19 +1,33 @@
 package tobyspring.community.domain;
 
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
+import org.hibernate.annotations.NaturalId;
+import org.hibernate.annotations.NaturalIdCache;
 import org.springframework.util.Assert;
 
 @NoArgsConstructor
 @Getter
-public class Member {
-
+@NaturalIdCache
+@ToString
+@Entity
+@Table
+public class Member extends EntityAbstract{
+    @NaturalId
+    @Embedded
+    @Column(nullable=false)
     private Email email;
 
+    @Column(length = 150)
     private String nickname;
 
+    @Column(length = 200)
     private String passwordHash;
 
+    @Column(length = 100)
+    @Enumerated(EnumType.STRING)
     private MemberStatus status;
 
     public static Member register(RegisterMemberRequest registerRequest, PasswordEncode passwordEncoder) {

@@ -1,5 +1,6 @@
 package tobyspring.community.domain;
 
+import jakarta.persistence.Embeddable;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -9,6 +10,7 @@ import static org.springframework.util.Assert.state;
 
 @NoArgsConstructor
 @Getter
+@Embeddable
 public class Email {
     private String address;
 
