@@ -47,7 +47,7 @@ public class MemberTest {
         member.changePassword("qwer1234!", passwordEncode);
 
         Assertions.assertThat(member.getStatus()).isEqualTo(MemberStatus.ACTIVE);
-        Assertions.assertThat(member.getPasswordHash()).isEqualTo(passwordEncode.encode("qwer1234!"));
+        Assertions.assertThat(passwordEncode.match("qwer1234!", member.getPasswordHash())).isTrue();
     }
 
     @Test
