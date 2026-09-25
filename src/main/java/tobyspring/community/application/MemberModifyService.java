@@ -3,8 +3,8 @@ package tobyspring.community.application;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
 import org.springframework.validation.annotation.Validated;
+import tobyspring.community.application.provided.MemberFinder;
 import tobyspring.community.application.provided.MemberRegister;
 import tobyspring.community.application.required.EmailSender;
 import tobyspring.community.application.required.MemberRepository;
@@ -16,7 +16,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Transactional
 @Validated
-public class MemberService implements MemberRegister {
+public class MemberModifyService implements MemberRegister {
+    private final MemberFinder memberFinder;
     private final MemberRepository memberRepository;
     private final PasswordEncode passwordEncode;
     private final EmailSender emailSender;
@@ -36,7 +37,7 @@ public class MemberService implements MemberRegister {
 
     @Override
     public Member activate(Long id) {
-        Member member = memberRepository.findById(id).orElseThrow();
+        Member member = memberFinder.findById(id);
 
         if(member.getStatus() != MemberStatus.ACTIVE) {
             member.activate();
@@ -50,9 +51,9 @@ public class MemberService implements MemberRegister {
 
     @Override
     public Member deactivate(Long id) {
-        Member member = memberRepository.findById(id).orElseThrow();
+        Member member = memberFinder.findById(id);
 
-        if(member.getStatus() != MemberStatus.DEACTIVATED) {
+        if((member.getStatus() != MemberStatus.DEACTIVATED) && (member.getStatus() == MemberStatus.ACTIVE)) {
             member.deactivate();
             memberRepository.save(member);
         }else {
