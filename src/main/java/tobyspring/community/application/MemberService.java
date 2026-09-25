@@ -8,10 +8,7 @@ import org.springframework.validation.annotation.Validated;
 import tobyspring.community.application.provided.MemberRegister;
 import tobyspring.community.application.required.EmailSender;
 import tobyspring.community.application.required.MemberRepository;
-import tobyspring.community.domain.Email;
-import tobyspring.community.domain.PasswordEncode;
-import tobyspring.community.domain.Member;
-import tobyspring.community.domain.RegisterMemberRequest;
+import tobyspring.community.domain.*;
 
 import java.util.Optional;
 
@@ -26,17 +23,53 @@ public class MemberService implements MemberRegister {
 
     @Override
     public Member register(RegisterMemberRequest registerMemberRequest) {
-        Optional<Member> byEmail = memberRepository.findByEmail(new Email(registerMemberRequest.email()));
-        if(byEmail.isPresent()) {
-            throw new DuplicateEmailException(registerMemberRequest.email());
-        };
+        checkEmailExist(registerMemberRequest);
 
         Member member = Member.register(registerMemberRequest, passwordEncode);
 
         memberRepository.save(member);
 
-        emailSender.send(member.getEmail(), "ㅇㅣㅁㅔㅇㅣㄹ ㅂㅏㄹㅅㅗㅇ", "ㅇㅣㅁㅔㅇㅣㄹ");
+        sendEmail(member);
 
         return member;
+    }
+
+    @Override
+    public Member activate(Long id) {
+        Member member = memberRepository.findById(id).orElseThrow();
+
+        if(member.getStatus() != MemberStatus.ACTIVE) {
+            member.activate();
+            memberRepository.save(member);
+        }else {
+            throw new IllegalStateException("Member is already active.");
+        }
+
+        return member;
+    }
+
+    @Override
+    public Member deactivate(Long id) {
+        Member member = memberRepository.findById(id).orElseThrow();
+
+        if(member.getStatus() != MemberStatus.DEACTIVATED) {
+            member.deactivate();
+            memberRepository.save(member);
+        }else {
+            throw new IllegalStateException("Member is already deactivated.");
+        }
+
+        return member;                                                       }
+
+    private void sendEmail(Member member) {
+        emailSender.send(member.getEmail(), "이메일 발송", "이메일");
+    }
+
+    private void checkEmailExist(RegisterMemberRequest registerMemberRequest) {
+        Optional<Member> byEmail = memberRepository.findByEmail(new Email(registerMemberRequest.email()));
+        if(byEmail.isPresent()) {
+            throw new DuplicateEmailException(registerMemberRequest.email());
+        }
+        ;
     }
 }
