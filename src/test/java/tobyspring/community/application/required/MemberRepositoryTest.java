@@ -64,4 +64,14 @@ class MemberRepositoryTest {
                 () -> memberRepository.save(member2)
         ).isInstanceOf(DataIntegrityViolationException.class);
     }
+
+    @Test
+    void 회원_id_조회() {
+        Member saved = memberRepository.save(this.member);
+
+        Member foundMember = memberRepository.findById(saved.getId()).orElseThrow();
+
+        Assertions.assertThat(foundMember.getEmail()).isEqualTo(this.member.getEmail());
+        Assertions.assertThat(foundMember.getStatus()).isEqualTo(MemberStatus.PENDING);
+    }
 }
