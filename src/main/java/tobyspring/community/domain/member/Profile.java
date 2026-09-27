@@ -17,4 +17,8 @@ public record Profile(String profile_address) {
 
         state(profile_address.length() < 15, "프로필 주소는 최대 15자리를 넘을 수 없습니다. : " + profile_address);
     }
+
+    public String url() {
+        return "@" + profile_address;
+    }
 }
