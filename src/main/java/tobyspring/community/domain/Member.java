@@ -30,6 +30,9 @@ public class Member extends EntityAbstract{
     @Enumerated(EnumType.STRING)
     private MemberStatus status;
 
+    @OneToOne(cascade = CascadeType.ALL)
+    private MemberDetail detail;
+
     public static Member register(RegisterMemberRequest registerRequest, PasswordEncode passwordEncoder) {
         Member member = new Member();
 
@@ -38,16 +41,20 @@ public class Member extends EntityAbstract{
         member.passwordHash = passwordEncoder.encode(registerRequest.password());
         member.status = MemberStatus.PENDING;
 
+        member.detail = MemberDetail.create();
+
         return member;
     }
 
     public void activate() {
         this.status = MemberStatus.ACTIVE;
+        this.detail.activate();
     }
 
     public void deactivate() {
         Assert.state(this.status == MemberStatus.ACTIVE, "Member is not active");
         this.status = MemberStatus.DEACTIVATED;
+        this.detail.deactivate();
     }
 
     public boolean verifyPassword(String password, PasswordEncode passwordEncoder) {
@@ -57,5 +64,14 @@ public class Member extends EntityAbstract{
     public void changePassword(String newPassword, PasswordEncode passwordEncoder) {
         Assert.state(this.status == MemberStatus.ACTIVE, "Member is not active");
         this.passwordHash = passwordEncoder.encode(newPassword);
+    }
+
+    public Member updateInfo(String nickname, MemberDetailRequest detailRequest) {
+        Assert.state(this.status == MemberStatus.ACTIVE, "Member is not active");
+
+        this.nickname = nickname;
+        this.detail.updateInfo(detailRequest);
+
+        return this;
     }
 }

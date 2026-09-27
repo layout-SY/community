@@ -20,6 +20,7 @@ public class MemberTest {
     @Test
     void 회원_등록() {
         Assertions.assertThat(member.getNickname()).isNotNull();
+        Assertions.assertThat(member.getDetail().getRegisteredAt()).isNotNull();
     }
 
     @Test
@@ -27,6 +28,7 @@ public class MemberTest {
         member.activate();
 
         Assertions.assertThat(member.getStatus()).isEqualTo(MemberStatus.ACTIVE);
+        Assertions.assertThat(member.getDetail().getActivatedAt()).isNotNull();
     }
 
     @Test
@@ -34,10 +36,13 @@ public class MemberTest {
         member.activate();
 
         Assertions.assertThat(member.getStatus()).isEqualTo(MemberStatus.ACTIVE);
+        Assertions.assertThat(member.getDetail().getActivatedAt()).isNotNull();
+        Assertions.assertThat(member.getDetail().getDeactivatedAt()).isNull();
 
         member.deactivate();
 
         Assertions.assertThat(member.getStatus()).isEqualTo(MemberStatus.DEACTIVATED);
+        Assertions.assertThat(member.getDetail().getDeactivatedAt()).isNotNull();
     }
 
     @Test
@@ -55,5 +60,25 @@ public class MemberTest {
         Assertions.assertThatThrownBy(() -> member.changePassword("qwer1234!", passwordEncode),
                 "Member is not active"
         );
+    }
+
+    @Test
+    void 회원_정보_수정() {
+        member.activate();
+
+        Assertions.assertThat(member.getStatus()).isEqualTo(MemberStatus.ACTIVE);
+        Assertions.assertThat(member.getDetail().getActivatedAt()).isNotNull();
+
+        Member updatedMember = member.updateInfo("qwe123", new MemberDetailRequest("qwwe", "자기소개"));
+
+        Assertions.assertThat(updatedMember.getDetail().getIntroduction()).isEqualTo("자기소개");
+    }
+
+    @Test
+    void 회원_정보_수정_실패_not_activate() {
+        Assertions.assertThat(member.getStatus()).isEqualTo(MemberStatus.PENDING);
+
+        Assertions.assertThatThrownBy(
+                () -> member.updateInfo("qwe123", new MemberDetailRequest("qwwe", "자기소개")), "Member is not active");
     }
 }
