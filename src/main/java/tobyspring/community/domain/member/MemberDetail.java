@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.util.Assert;
 import tobyspring.community.domain.EntityAbstract;
 
 import java.time.LocalDateTime;
@@ -34,10 +35,12 @@ public class MemberDetail extends EntityAbstract {
     }
 
     public void activate() {
+        Assert.isTrue(activatedAt == null, "이미 activatedAt은 설정되어 있습니다.");
         this.activatedAt = LocalDateTime.now();
     }
 
     public void deactivate() {
+        Assert.isTrue(deactivatedAt == null, "이미 deactivatedAt은 설정되어 있습니다.");
         this.deactivatedAt = LocalDateTime.now();
     }
 
