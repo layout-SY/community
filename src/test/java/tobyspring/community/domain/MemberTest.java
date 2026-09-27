@@ -76,6 +76,7 @@ public class MemberTest {
         Member updatedMember = member.updateInfo("qwe123", new MemberDetailRequest("qwwe", "자기소개"));
 
         Assertions.assertThat(updatedMember.getDetail().getIntroduction()).isEqualTo("자기소개");
+        Assertions.assertThat(updatedMember.getDetail().getProfile().profile_address()).isEqualTo("qwwe");
     }
 
     @Test

@@ -42,10 +42,9 @@ class MemberRepositoryTest {
 
         Member memberById = memberRepository.findById(saved.getId()).orElseThrow();
 
-        System.out.println(memberById);
-        System.out.println(saved);
-
         Assertions.assertThat(memberById.getEmail().equals(this.member.getEmail())).isTrue();
+
+        Assertions.assertThat(memberById.getDetail().getRegisteredAt()).isNotNull();
     }
 
     @Test
