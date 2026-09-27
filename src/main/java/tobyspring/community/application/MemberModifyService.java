@@ -8,7 +8,11 @@ import tobyspring.community.application.provided.MemberFinder;
 import tobyspring.community.application.provided.MemberRegister;
 import tobyspring.community.application.required.EmailSender;
 import tobyspring.community.application.required.MemberRepository;
-import tobyspring.community.domain.*;
+import tobyspring.community.domain.member.PasswordEncode;
+import tobyspring.community.domain.shared.Email;
+import tobyspring.community.domain.member.Member;
+import tobyspring.community.domain.member.MemberStatus;
+import tobyspring.community.domain.member.RegisterMemberRequest;
 
 import java.util.Optional;
 

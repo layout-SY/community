@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import tobyspring.community.application.provided.MemberFinder;
 import tobyspring.community.application.required.MemberRepository;
-import tobyspring.community.domain.Member;
+import tobyspring.community.domain.member.Member;
 
 @Service
 @RequiredArgsConstructor

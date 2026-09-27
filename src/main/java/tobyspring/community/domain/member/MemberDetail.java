@@ -1,17 +1,18 @@
-package tobyspring.community.domain;
+package tobyspring.community.domain.member;
 
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import tobyspring.community.domain.EntityAbstract;
 
 import java.time.LocalDateTime;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Entity
-public class MemberDetail extends EntityAbstract{
+public class MemberDetail extends EntityAbstract {
 
     @Embedded
     private Profile profile;

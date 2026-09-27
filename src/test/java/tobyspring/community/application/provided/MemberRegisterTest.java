@@ -9,12 +9,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import tobyspring.community.application.DuplicateEmailException;
 import tobyspring.community.application.required.MemberRepository;
-import tobyspring.community.domain.Member;
-import tobyspring.community.domain.MemberFixture;
-import tobyspring.community.domain.MemberStatus;
-import tobyspring.community.domain.RegisterMemberRequest;
-
-import static org.junit.jupiter.api.Assertions.*;
+import tobyspring.community.domain.member.Member;
+import tobyspring.community.domain.member.MemberFixture;
+import tobyspring.community.domain.member.MemberStatus;
+import tobyspring.community.domain.member.RegisterMemberRequest;
 
 @SpringBootTest
 @Transactional

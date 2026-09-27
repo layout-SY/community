@@ -1,4 +1,4 @@
-package tobyspring.community.domain;
+package tobyspring.community.domain.member;
 
 public record MemberDetailRequest(
         String profile,

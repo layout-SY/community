@@ -1,8 +1,6 @@
-package tobyspring.community.domain;
+package tobyspring.community.domain.member;
 
 import jakarta.persistence.Embeddable;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import java.util.regex.Pattern;
 

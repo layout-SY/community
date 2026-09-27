@@ -2,6 +2,7 @@ package tobyspring.community.domain;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import tobyspring.community.domain.member.Profile;
 
 public class ProfileTest {
     @Test

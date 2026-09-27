@@ -1,4 +1,4 @@
-package tobyspring.community.domain;
+package tobyspring.community.domain.member;
 
 import org.jspecify.annotations.NonNull;
 

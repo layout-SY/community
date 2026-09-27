@@ -1,8 +1,8 @@
 package tobyspring.community.application.required;
 
 import org.springframework.data.repository.Repository;
-import tobyspring.community.domain.Email;
-import tobyspring.community.domain.Member;
+import tobyspring.community.domain.shared.Email;
+import tobyspring.community.domain.member.Member;
 
 import java.util.Optional;
 

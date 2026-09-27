@@ -3,10 +3,9 @@ package tobyspring.community.application.required;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Import;
 import tobyspring.community.application.provided.MemberRegisterConfig;
-import tobyspring.community.domain.PasswordEncode;
+import tobyspring.community.domain.member.PasswordEncode;
 
 @SpringBootTest
 @Import(MemberRegisterConfig.class)

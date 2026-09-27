@@ -7,10 +7,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.dao.DataIntegrityViolationException;
-import tobyspring.community.domain.Member;
-import tobyspring.community.domain.MemberFixture;
-import tobyspring.community.domain.MemberStatus;
-import tobyspring.community.domain.PasswordEncode;
+import tobyspring.community.domain.member.Member;
+import tobyspring.community.domain.member.MemberFixture;
+import tobyspring.community.domain.member.MemberStatus;
+import tobyspring.community.domain.member.PasswordEncode;
 
 @DataJpaTest
 class MemberRepositoryTest {

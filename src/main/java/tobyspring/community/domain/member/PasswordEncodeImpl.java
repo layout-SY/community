@@ -1,4 +1,4 @@
-package tobyspring.community.domain;
+package tobyspring.community.domain.member;
 
 import org.springframework.context.annotation.Fallback;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;

@@ -3,9 +3,13 @@ package tobyspring.community.domain;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tobyspring.community.domain.member.MemberDetailRequest;
+import tobyspring.community.domain.member.Member;
+import tobyspring.community.domain.member.MemberStatus;
+import tobyspring.community.domain.member.PasswordEncode;
 
-import static tobyspring.community.domain.MemberFixture.createPasswordEncoder;
-import static tobyspring.community.domain.MemberFixture.getRegisterRequest;
+import static tobyspring.community.domain.member.MemberFixture.createPasswordEncoder;
+import static tobyspring.community.domain.member.MemberFixture.getRegisterRequest;
 
 public class MemberTest {
     private Member member;

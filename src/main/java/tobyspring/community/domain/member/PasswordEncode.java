@@ -1,4 +1,4 @@
-package tobyspring.community.domain;
+package tobyspring.community.domain.member;
 
 public interface PasswordEncode {
     String encode(String password);

@@ -1,4 +1,4 @@
-package tobyspring.community.domain;
+package tobyspring.community.domain.member;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -7,6 +7,8 @@ import lombok.ToString;
 import org.hibernate.annotations.NaturalId;
 import org.hibernate.annotations.NaturalIdCache;
 import org.springframework.util.Assert;
+import tobyspring.community.domain.EntityAbstract;
+import tobyspring.community.domain.shared.Email;
 
 @NoArgsConstructor
 @Getter
@@ -14,7 +16,7 @@ import org.springframework.util.Assert;
 @ToString
 @Entity
 @Table
-public class Member extends EntityAbstract{
+public class Member extends EntityAbstract {
     @NaturalId
     @Embedded
     @Column(nullable=false)

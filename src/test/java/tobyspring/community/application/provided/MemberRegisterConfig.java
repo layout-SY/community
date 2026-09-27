@@ -2,11 +2,9 @@ package tobyspring.community.application.provided;
 
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.test.context.TestConstructor;
 import tobyspring.community.application.required.EmailSender;
-import tobyspring.community.domain.MemberFixture;
-import tobyspring.community.domain.PasswordEncode;
+import tobyspring.community.domain.member.MemberFixture;
+import tobyspring.community.domain.member.PasswordEncode;
 
 @TestConfiguration
 public class MemberRegisterConfig {

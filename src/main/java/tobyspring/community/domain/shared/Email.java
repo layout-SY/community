@@ -1,4 +1,4 @@
-package tobyspring.community.domain;
+package tobyspring.community.domain.shared;
 
 import jakarta.persistence.Embeddable;
 import lombok.Getter;
