@@ -4,15 +4,13 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
+import tobyspring.community.adapter.security.PasswordEncode;
 import tobyspring.community.application.provided.MemberFinder;
 import tobyspring.community.application.provided.MemberRegister;
 import tobyspring.community.application.required.EmailSender;
 import tobyspring.community.application.required.MemberRepository;
-import tobyspring.community.domain.member.PasswordEncode;
+import tobyspring.community.domain.member.*;
 import tobyspring.community.domain.shared.Email;
-import tobyspring.community.domain.member.Member;
-import tobyspring.community.domain.member.MemberStatus;
-import tobyspring.community.domain.member.RegisterMemberRequest;
 
 import java.util.Optional;
 
@@ -65,6 +63,20 @@ public class MemberModifyService implements MemberRegister {
         }
 
         return member;                                                       }
+
+    @Override
+    public Member updateInfo(Long memberId, String nickname, MemberDetailRequest detailRequest) {
+        Member member = memberFinder.findById(memberId);
+
+        if((member.getStatus() == MemberStatus.ACTIVE)) {
+            member.updateInfo(nickname,  detailRequest);
+            memberRepository.save(member);
+        }else {
+            throw new IllegalStateException("Member is not active.");
+        }
+
+        return member;
+    }
 
     private void sendEmail(Member member) {
         emailSender.send(member.getEmail(), "이메일 발송", "이메일");
