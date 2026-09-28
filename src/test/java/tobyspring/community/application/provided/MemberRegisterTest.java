@@ -9,10 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import tobyspring.community.application.DuplicateEmailException;
 import tobyspring.community.application.required.MemberRepository;
-import tobyspring.community.domain.member.Member;
-import tobyspring.community.domain.member.MemberFixture;
-import tobyspring.community.domain.member.MemberStatus;
-import tobyspring.community.domain.member.RegisterMemberRequest;
+import tobyspring.community.domain.member.*;
 
 @SpringBootTest
 @Transactional
@@ -64,6 +61,7 @@ record MemberRegisterTest(MemberRegister memberRegister, MemberRepository member
         entityManager.clear();
 
         Assertions.assertThat(foundMember.getStatus()).isEqualTo(MemberStatus.ACTIVE);
+        Assertions.assertThat(foundMember.getDetail().getActivatedAt()).isNotNull();
     }
 
     @Test
@@ -85,6 +83,7 @@ record MemberRegisterTest(MemberRegister memberRegister, MemberRepository member
         entityManager.clear();
 
         Assertions.assertThat(foundMember.getStatus()).isEqualTo(MemberStatus.DEACTIVATED);
+        Assertions.assertThat(foundMember.getDetail().getDeactivatedAt()).isNotNull();
     }
 
     @Test
@@ -98,5 +97,25 @@ record MemberRegisterTest(MemberRegister memberRegister, MemberRepository member
 
         Assertions.assertThatThrownBy(
                 () -> memberRegister.deactivate(member.getId())).isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    void 회원_정보_수정() {
+        Member member = memberRegister.register(MemberFixture.getRegisterRequest());
+
+        Assertions.assertThat(member.getStatus()).isEqualTo(MemberStatus.PENDING);
+
+        entityManager.flush();
+
+        Member activtedMember = memberRegister.activate(member.getId());
+        Assertions.assertThat(activtedMember.getStatus()).isEqualTo(MemberStatus.ACTIVE);
+
+        memberRegister.updateInfo(member.getId(), "qwer1234", MemberFixture.getMemberDetailRequest("asdf"));
+        Member foundMember = memberRepository.findById(member.getId()).orElseThrow();
+
+        entityManager.flush();
+
+        Assertions.assertThat(foundMember.getStatus()).isEqualTo(MemberStatus.ACTIVE);
+        Assertions.assertThat(foundMember.getDetail().getProfile().profile_address()).isEqualTo("asdf");
     }
 }
