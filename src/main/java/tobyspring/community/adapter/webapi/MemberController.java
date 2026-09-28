@@ -21,7 +21,7 @@ public class MemberController {
     @PostMapping("/member/register")
     public MemberDto registerMember(
             @RequestBody @Valid RegisterMemberRequest registerMemberRequest) {
-        Assert.isTrue(registerMemberRequest != null, "registerMemberRequest가 비었습니다.");
+        Assert.notNull(registerMemberRequest.email(), "email이 비었습니다.");
 
         RegisterMemberRequest registerRequest = MemberFixture.getRegisterRequest(
                 registerMemberRequest.email(),

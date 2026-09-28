@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
@@ -24,6 +25,8 @@ import tobyspring.community.domain.member.RegisterMemberRequest;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
+import java.util.Map;
 
 @SpringBootTest
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
@@ -42,63 +45,98 @@ public class MemberControllerTest {
     void setUp() {
     }
 
-    @Test
+    @Nested
     @Order(1)
-    void 회원_생성_api() throws UnsupportedEncodingException {
-        this.sharedMember = registerMemberApi();
+    class 회원_생성 {
+        @Test
+        void 회원_생성_성공() throws UnsupportedEncodingException {
+            sharedMember = registerMemberApi();
 
-        Assertions.assertThat(sharedMember.status()).isEqualTo(MemberStatus.PENDING);
-        Assertions.assertThat(sharedMember.detail().getRegisteredAt()).isNotNull();
+            Assertions.assertThat(sharedMember.status()).isEqualTo(MemberStatus.PENDING);
+            Assertions.assertThat(sharedMember.detail().getRegisteredAt()).isNotNull();
+        }
+
+        @Test
+        void 회원_생성_실패_400_body_없음() {
+            MvcTestResult exchange = mvcTester.post().uri("/member/register")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .exchange();
+
+            Assertions.assertThat(exchange)
+                    .hasStatus(HttpStatus.BAD_REQUEST);
+        }
+
+        @Test
+        void 회원_생성_실패_400_body_email_없음() {
+            MvcTestResult exchange = mvcTester.post().uri("/member/register")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(
+                            Map.of("nickname", "qwer123", "password", "zxcv123!")))
+                    .exchange();
+
+            Assertions.assertThat(exchange)
+                    .hasStatus(HttpStatus.BAD_REQUEST);
+        }
     }
 
-    @Test
+    @Nested
     @Order(2)
-    void 회원_activate_api() throws UnsupportedEncodingException {
-        MvcTestResult exchange = mvcTester.get().uri("/activate/" + this.sharedMember.id())
-                .contentType(MediaType.APPLICATION_JSON)
-                .exchange();
+    class 회원_activate {
+        @Test
+        void 회원_activate_api() throws UnsupportedEncodingException {
+            MvcTestResult exchange = mvcTester.get().uri("/activate/" + sharedMember.id())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .exchange();
 
-        MemberDto activatedMemberDto = objectMapper.readValue(exchange.getResponse().getContentAsString(), MemberDto.class);
+            MemberDto activatedMemberDto = objectMapper.readValue(exchange.getResponse().getContentAsString(), MemberDto.class);
 
-        Assertions.assertThat(activatedMemberDto.status()).isEqualTo(MemberStatus.ACTIVE);
-        Assertions.assertThat(activatedMemberDto.detail().getActivatedAt()).isNotNull();
+            Assertions.assertThat(activatedMemberDto.status()).isEqualTo(MemberStatus.ACTIVE);
+            Assertions.assertThat(activatedMemberDto.detail().getActivatedAt()).isNotNull();
 
-        this.sharedMember = activatedMemberDto;
+            sharedMember = activatedMemberDto;
+        }
     }
 
-    @Test
+    @Nested
     @Order(4)
-    void 회원_deactivate_api() throws UnsupportedEncodingException {
+    class 회원_deactivate {
+        @Test
+        void 회원_deactivate_api() throws UnsupportedEncodingException {
 
-        MvcTestResult exchange = mvcTester.get().uri("/deactivate/" + this.sharedMember.id())
-                .contentType(MediaType.APPLICATION_JSON)
-                .exchange();
+            MvcTestResult exchange = mvcTester.get().uri("/deactivate/" + sharedMember.id())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .exchange();
 
-        MemberDto deactivatedMemberDto = objectMapper.readValue(exchange.getResponse().getContentAsString(), MemberDto.class);
+            MemberDto deactivatedMemberDto = objectMapper.readValue(exchange.getResponse().getContentAsString(), MemberDto.class);
 
-        Assertions.assertThat(deactivatedMemberDto.status()).isEqualTo(MemberStatus.DEACTIVATED);
-        Assertions.assertThat(deactivatedMemberDto.detail().getDeactivatedAt()).isNotNull();
+            Assertions.assertThat(deactivatedMemberDto.status()).isEqualTo(MemberStatus.DEACTIVATED);
+            Assertions.assertThat(deactivatedMemberDto.detail().getDeactivatedAt()).isNotNull();
 
-        this.sharedMember = deactivatedMemberDto;
+            sharedMember = deactivatedMemberDto;
+        }
     }
 
-    @Test
+    @Nested
     @Order(3)
-    void 회원_정보_수정_api() throws UnsupportedEncodingException {
-        MvcTestResult exchange = mvcTester.put().uri("/update/" + this.sharedMember.id())
-                .contentType(MediaType.APPLICATION_JSON)
-                .param("nickname", "qwer123")
-                .content(objectMapper.writeValueAsString(MemberFixture.getMemberDetailRequest()))
-                .exchange();
+    class 회원_정보_수정 {
+        @Test
+        void 회원_정보_수정_api() throws UnsupportedEncodingException {
+            MvcTestResult exchange = mvcTester.put().uri("/update/" + sharedMember.id())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .param("nickname", "qwer123")
+                    .content(objectMapper.writeValueAsString(MemberFixture.getMemberDetailRequest()))
+                    .exchange();
 
-        MemberDto updatedMemberDto = objectMapper.readValue(exchange.getResponse().getContentAsString(), MemberDto.class);
+            MemberDto updatedMemberDto = objectMapper.readValue(exchange.getResponse().getContentAsString(), MemberDto.class);
 
-        Assertions.assertThat(updatedMemberDto.status()).isEqualTo(MemberStatus.ACTIVE);
-        Assertions.assertThat(updatedMemberDto.detail().getProfile().profile_address()).isEqualTo("qwerasdf");
-        Assertions.assertThat(updatedMemberDto.nickname()).isEqualTo("qwer123");
+            Assertions.assertThat(updatedMemberDto.status()).isEqualTo(MemberStatus.ACTIVE);
+            Assertions.assertThat(updatedMemberDto.detail().getProfile().profile_address()).isEqualTo("qwerasdf");
+            Assertions.assertThat(updatedMemberDto.nickname()).isEqualTo("qwer123");
 
-        this.sharedMember =  updatedMemberDto;
+            sharedMember =  updatedMemberDto;
+        }
     }
+
 
     private @NonNull MemberDto registerMemberApi() throws UnsupportedEncodingException {
         RegisterMemberRequest request = MemberFixture.getRegisterRequest();
