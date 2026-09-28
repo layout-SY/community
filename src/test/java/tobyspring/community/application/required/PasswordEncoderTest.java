@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import tobyspring.community.application.provided.MemberRegisterConfig;
-import tobyspring.community.domain.member.PasswordEncode;
+import tobyspring.community.adapter.security.PasswordEncode;
 
 @SpringBootTest
 @Import(MemberRegisterConfig.class)
