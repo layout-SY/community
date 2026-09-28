@@ -10,7 +10,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import tobyspring.community.domain.member.Member;
 import tobyspring.community.domain.member.MemberFixture;
 import tobyspring.community.domain.member.MemberStatus;
-import tobyspring.community.domain.member.PasswordEncode;
+import tobyspring.community.adapter.security.PasswordEncode;
 
 @DataJpaTest
 class MemberRepositoryTest {

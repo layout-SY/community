@@ -7,6 +7,7 @@ import lombok.ToString;
 import org.hibernate.annotations.NaturalId;
 import org.hibernate.annotations.NaturalIdCache;
 import org.springframework.util.Assert;
+import tobyspring.community.adapter.security.PasswordEncode;
 import tobyspring.community.domain.EntityAbstract;
 import tobyspring.community.domain.shared.Email;
 

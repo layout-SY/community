@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import tobyspring.community.domain.member.MemberDetailRequest;
 import tobyspring.community.domain.member.Member;
 import tobyspring.community.domain.member.MemberStatus;
-import tobyspring.community.domain.member.PasswordEncode;
+import tobyspring.community.adapter.security.PasswordEncode;
 
 import static tobyspring.community.domain.member.MemberFixture.createPasswordEncoder;
 import static tobyspring.community.domain.member.MemberFixture.getRegisterRequest;
