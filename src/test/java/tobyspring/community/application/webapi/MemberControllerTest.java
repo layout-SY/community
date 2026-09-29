@@ -11,6 +11,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ProblemDetail;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 import org.springframework.test.web.servlet.assertj.MvcTestResult;
@@ -49,7 +50,7 @@ public class MemberControllerTest {
     @Order(1)
     class 회원_생성 {
         @Test
-        void 회원_생성_성공() throws UnsupportedEncodingException {
+        void 성공() throws UnsupportedEncodingException {
             sharedMember = registerMemberApi();
 
             Assertions.assertThat(sharedMember.status()).isEqualTo(MemberStatus.PENDING);
@@ -57,7 +58,7 @@ public class MemberControllerTest {
         }
 
         @Test
-        void 회원_생성_실패_400_body_없음() {
+        void 실패_400_body_없음() {
             MvcTestResult exchange = mvcTester.post().uri("/member/register")
                     .contentType(MediaType.APPLICATION_JSON)
                     .exchange();
@@ -67,7 +68,7 @@ public class MemberControllerTest {
         }
 
         @Test
-        void 회원_생성_실패_400_body_email_없음() {
+        void 실패_400_body_email_없음() {
             MvcTestResult exchange = mvcTester.post().uri("/member/register")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(
@@ -76,6 +77,23 @@ public class MemberControllerTest {
 
             Assertions.assertThat(exchange)
                     .hasStatus(HttpStatus.BAD_REQUEST);
+        }
+
+        @Test
+        void 실패_400_email_중복() {
+            RegisterMemberRequest request = MemberFixture.getRegisterRequest();
+
+            MvcTestResult exchange = mvcTester.post().uri("/member/register")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+                    .exchange();
+
+            Assertions.assertThat(exchange)
+                    .hasStatus(HttpStatus.CONFLICT);
+
+            ProblemDetail problemDetail = objectMapper.readValue(exchange.getResponse().getContentAsByteArray(), ProblemDetail.class);
+
+            Assertions.assertThat(problemDetail.getDetail()).isEqualTo("이미 존재하는 이메일 입니다 : " + request.email());
         }
     }
 
