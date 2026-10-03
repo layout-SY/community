@@ -19,6 +19,7 @@ import tobyspring.community.adapter.security.PasswordEncode;
 import tobyspring.community.adapter.webapi.MemberController;
 import tobyspring.community.adapter.webapi.MemberDto;
 import tobyspring.community.application.provided.MemberRegister;
+import tobyspring.community.application.required.MemberRepository;
 import tobyspring.community.domain.member.Member;
 import tobyspring.community.domain.member.MemberFixture;
 import tobyspring.community.domain.member.MemberStatus;
@@ -39,6 +40,7 @@ import java.util.Map;
 public class MemberControllerTest {
     private final MockMvcTester mvcTester;
     private final ObjectMapper objectMapper;
+    private final MemberRepository memberRepository;
 
     private MemberDto sharedMember;
 
@@ -53,8 +55,13 @@ public class MemberControllerTest {
         void 성공() throws UnsupportedEncodingException {
             sharedMember = registerMemberApi();
 
+            Member member = memberRepository.findById(sharedMember.id()).orElseThrow();
+
             Assertions.assertThat(sharedMember.status()).isEqualTo(MemberStatus.PENDING);
             Assertions.assertThat(sharedMember.detail().getRegisteredAt()).isNotNull();
+
+            Assertions.assertThat(member.getStatus()).isEqualTo(MemberStatus.PENDING);
+            Assertions.assertThat(member.getDetail().getRegisteredAt()).isNotNull();
         }
 
         @Test
@@ -94,6 +101,28 @@ public class MemberControllerTest {
             ProblemDetail problemDetail = objectMapper.readValue(exchange.getResponse().getContentAsByteArray(), ProblemDetail.class);
 
             Assertions.assertThat(problemDetail.getDetail()).isEqualTo("이미 존재하는 이메일 입니다 : " + request.email());
+        }
+
+        @Test
+        void 실패_400_email_형식_아님() {
+            RegisterMemberRequest request = MemberFixture.getRegisterRequest("invalid email");
+
+            MvcTestResult exchange = mvcTester.post().uri("/member/register")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+                    .exchange();
+
+            Assertions.assertThat(exchange)
+                    .hasStatus(HttpStatus.BAD_REQUEST);
+
+            ProblemDetail problemDetail = objectMapper.readValue(exchange.getResponse().getContentAsByteArray(), ProblemDetail.class);
+
+            Assertions.assertThat(problemDetail.getDetail()).isNotNull();
+        }
+
+        @Test
+        void 실패_400_() {
+
         }
     }
 
