@@ -45,7 +45,7 @@ public class MemberModifyService implements MemberRegister {
             member.activate();
             memberRepository.save(member);
         }else {
-            throw new IllegalStateException("Member is already active.");
+            throw new AlreadyStateException("Member is already active.");
         }
 
         return member;
@@ -59,7 +59,7 @@ public class MemberModifyService implements MemberRegister {
             member.deactivate();
             memberRepository.save(member);
         }else {
-            throw new IllegalStateException("Member is already deactivated.");
+            throw new AlreadyStateException("Member is already deactivate.");
         }
 
         return member;                                                       }
@@ -72,7 +72,7 @@ public class MemberModifyService implements MemberRegister {
             member.updateInfo(nickname,  detailRequest);
             memberRepository.save(member);
         }else {
-            throw new IllegalStateException("Member is not active.");
+            throw new AlreadyStateException("Member is not active.");
         }
 
         return member;

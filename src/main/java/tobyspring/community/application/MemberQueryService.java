@@ -16,6 +16,6 @@ public class MemberQueryService implements MemberFinder {
     @Override
     public Member findById(Long memberId) {
         return memberRepository.findById(memberId).orElseThrow(
-                () -> new IllegalArgumentException("회원 정보를 찾을 수 없습니다 : " + memberId));
+                () -> new NotFoundException("회원 정보가 없습니다. : " + memberId));
     }
 }

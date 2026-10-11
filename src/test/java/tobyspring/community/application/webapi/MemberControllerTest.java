@@ -39,7 +39,7 @@ public class MemberControllerTest {
     class Registration {
         @Test
         void 성공() {
-            MemberDto registeredMember = registerMemberApi();
+            MemberDto registeredMember = registerMemberApi("qwer@naver.com");
 
             Member member = memberRepository.findById(registeredMember.id()).orElseThrow();
 
@@ -74,7 +74,7 @@ public class MemberControllerTest {
 
         @Test
         void 실패_409_email_중복() {
-            registerMemberApi();
+            registerMemberApi("qwer@naver.com");
             RegisterMemberRequest request = MemberFixture.getRegisterRequest();
 
             MvcTestResult exchange = mvcTester.post().uri("/member/register")
@@ -85,7 +85,7 @@ public class MemberControllerTest {
             Assertions.assertThat(exchange)
                     .hasStatus(HttpStatus.CONFLICT);
 
-            ProblemDetail problemDetail = objectMapper.readValue(exchange.getResponse().getContentAsByteArray(), ProblemDetail.class);
+            ProblemDetail problemDetail = getProblemDetailInApiResponse(exchange);
 
             Assertions.assertThat(problemDetail.getDetail()).isEqualTo("이미 존재하는 이메일 입니다 : " + request.email());
         }
@@ -102,7 +102,7 @@ public class MemberControllerTest {
             Assertions.assertThat(exchange)
                     .hasStatus(HttpStatus.BAD_REQUEST);
 
-            ProblemDetail problemDetail = objectMapper.readValue(exchange.getResponse().getContentAsByteArray(), ProblemDetail.class);
+            ProblemDetail problemDetail = getProblemDetailInApiResponse(exchange);
 
             Assertions.assertThat(problemDetail.getDetail()).isNotNull();
         }
@@ -122,12 +122,43 @@ public class MemberControllerTest {
     @DisplayName("회원 활성화")
     class Activation {
         @Test
-        void 회원_activate_api() {
-            MemberDto registeredMember = registerMemberApi();
+        void 성공() {
+            MemberDto registeredMember = registerMemberApi("qwer@naver.com");
             MemberDto activatedMemberDto = activateMemberApi(registeredMember);
 
             Assertions.assertThat(activatedMemberDto.status()).isEqualTo(MemberStatus.ACTIVE);
             Assertions.assertThat(activatedMemberDto.detail().getActivatedAt()).isNotNull();
+        }
+
+        @Test
+        void 실패_400_이미_activate() {
+            MemberDto registeredMember = registerMemberApi("qwer@naver.com");
+            MemberDto memberDto = activateMemberApi(registeredMember);
+
+            Assertions.assertThat(memberDto.status()).isEqualTo(MemberStatus.ACTIVE);
+
+            MvcTestResult exchange = mvcTester.get().uri("/activate/" + registeredMember.id())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .exchange();
+
+            Assertions.assertThat(exchange).hasStatus(HttpStatus.BAD_REQUEST);
+
+            ProblemDetail problemDetail = getProblemDetailInApiResponse(exchange);
+
+            Assertions.assertThat(problemDetail.getDetail()).isEqualTo("Member is already active.");
+        }
+
+        @Test
+        void 실패_400_유효하지_않은_id() {
+            registerMemberApi("qwe@naver.com");
+
+            MvcTestResult exchange = mvcTester.get().uri("/activate/" + 123456 + "ba")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .exchange();
+
+            ProblemDetail problemDetail = getProblemDetailInApiResponse(exchange);
+
+            Assertions.assertThat(exchange).hasStatus(HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -135,8 +166,8 @@ public class MemberControllerTest {
     @DisplayName("회원 비활성화")
     class Deactivation {
         @Test
-        void 회원_deactivate_api() {
-            MemberDto activeMember = activateMemberApi(registerMemberApi());
+        void 성공() {
+            MemberDto activeMember = activateMemberApi(registerMemberApi("qwer@naver.com"));
 
             MvcTestResult exchange = mvcTester.get().uri("/deactivate/" + activeMember.id())
                     .contentType(MediaType.APPLICATION_JSON)
@@ -149,14 +180,53 @@ public class MemberControllerTest {
             Assertions.assertThat(deactivatedMemberDto.status()).isEqualTo(MemberStatus.DEACTIVATED);
             Assertions.assertThat(deactivatedMemberDto.detail().getDeactivatedAt()).isNotNull();
         }
+
+        @Test
+        void 실패_400_이미_deactivate() {
+            MemberDto registeredMember = registerMemberApi("qwer@naver.com");
+            MemberDto memberDto = activateMemberApi(registeredMember);
+
+            MvcTestResult exchange1 = mvcTester.get().uri("/deactivate/" + registeredMember.id())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .exchange();
+
+            MemberDto deactivatedMemberDto = objectMapper.readValue(exchange1.getResponse().getContentAsByteArray(), MemberDto.class);
+
+
+            Assertions.assertThat(memberDto.status()).isEqualTo(MemberStatus.ACTIVE);
+            Assertions.assertThat(deactivatedMemberDto.status()).isEqualTo(MemberStatus.DEACTIVATED);
+
+            MvcTestResult exchange = mvcTester.get().uri("/deactivate/" + registeredMember.id())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .exchange();
+
+            Assertions.assertThat(exchange).hasStatus(HttpStatus.BAD_REQUEST);
+
+            ProblemDetail problemDetail = getProblemDetailInApiResponse(exchange);
+
+            Assertions.assertThat(problemDetail.getDetail()).isEqualTo("Member is already deactivate.");
+        }
+
+        @Test
+        void 실패_400_유효하지_않은_id() {
+            registerMemberApi("qwe@naver.com");
+
+            MvcTestResult exchange = mvcTester.get().uri("/deactivate/" + 123456 + "ba")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .exchange();
+
+            ProblemDetail problemDetail = getProblemDetailInApiResponse(exchange);
+
+            Assertions.assertThat(exchange).hasStatus(HttpStatus.BAD_REQUEST);
+        }
     }
 
     @Nested
     @DisplayName("회원 정보 수정")
     class ProfileUpdate {
         @Test
-        void 회원_정보_수정_api() {
-            MemberDto activeMember = activateMemberApi(registerMemberApi());
+        void 성공() {
+            MemberDto activeMember = activateMemberApi(registerMemberApi("qwer@naver.com"));
 
             MvcTestResult exchange = mvcTester.put().uri("/update/" + activeMember.id())
                     .contentType(MediaType.APPLICATION_JSON)
@@ -172,11 +242,61 @@ public class MemberControllerTest {
             Assertions.assertThat(updatedMemberDto.detail().getProfile().profile_address()).isEqualTo("qwerasdf");
             Assertions.assertThat(updatedMemberDto.nickname()).isEqualTo("qwer123");
         }
+
+        @Test
+        void 실패_400_pending_deactivate_때_변경() {
+            MemberDto memberDto = registerMemberApi("qwer@naver.com");
+
+            MvcTestResult exchangePending = mvcTester.put().uri("/update/" + memberDto.id())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .param("nickname", "qwer123")
+                    .content(objectMapper.writeValueAsString(MemberFixture.getMemberDetailRequest()))
+                    .exchange();
+
+            Assertions.assertThat(exchangePending).hasStatus(HttpStatus.BAD_REQUEST);
+
+            mvcTester.get().uri("/deactivate/" + memberDto.id())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .exchange();
+
+            MvcTestResult exchangeDeactivate = mvcTester.put().uri("/update/" + memberDto.id())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .param("nickname", "qwer123")
+                    .content(objectMapper.writeValueAsString(MemberFixture.getMemberDetailRequest()))
+                    .exchange();
+
+            Assertions.assertThat(exchangeDeactivate).hasStatus(HttpStatus.BAD_REQUEST);
+
+            activateMemberApi(memberDto);
+
+            MvcTestResult exchange = mvcTester.put().uri("/update/" + memberDto.id())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .param("nickname", "qwer123")
+                    .content(objectMapper.writeValueAsString(MemberFixture.getMemberDetailRequest()))
+                    .exchange();
+
+            Assertions.assertThat(exchange).hasStatus(HttpStatus.OK);
+
+        }
+
+        @Test
+        void 실패_400_유효하지_않은_body() {
+            MemberDto activeMember = activateMemberApi(registerMemberApi("qwer@naver.com"));
+
+            MvcTestResult exchange = mvcTester.put().uri("/update/" + activeMember.id())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .param("zxcv", "qwer123")
+                    .content(objectMapper.writeValueAsString(MemberFixture.getMemberDetailRequest()))
+                    .exchange();
+
+            Assertions.assertThat(exchange).hasStatus(HttpStatus.BAD_REQUEST);
+        }
     }
 
 
-    private @NonNull MemberDto registerMemberApi() {
-        RegisterMemberRequest request = MemberFixture.getRegisterRequest();
+    private @NonNull MemberDto registerMemberApi(String email) {
+
+        RegisterMemberRequest request = MemberFixture.getRegisterRequest(email);
 
         MvcTestResult exchange = mvcTester.post().uri("/member/register")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -196,5 +316,9 @@ public class MemberControllerTest {
         Assertions.assertThat(exchange).hasStatus(HttpStatus.OK);
 
         return objectMapper.readValue(exchange.getResponse().getContentAsByteArray(), MemberDto.class);
+    }
+
+    private ProblemDetail getProblemDetailInApiResponse(MvcTestResult exchange) {
+        return objectMapper.readValue(exchange.getResponse().getContentAsByteArray(), ProblemDetail.class);
     }
 }
