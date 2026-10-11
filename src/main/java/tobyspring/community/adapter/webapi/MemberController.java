@@ -2,8 +2,13 @@ package tobyspring.community.adapter.webapi;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
+import tobyspring.community.adapter.security.AuthenticateException;
+import tobyspring.community.adapter.security.TokenExtractor;
+import tobyspring.community.adapter.security.TokenManager;
 import tobyspring.community.application.MemberAuth;
 import tobyspring.community.application.provided.MemberFinder;
 import tobyspring.community.application.provided.MemberRegister;
@@ -17,6 +22,7 @@ public class MemberController {
     private final MemberRegister memberRegister;
     private final MemberFinder memberFinder;
     private final MemberAuth memberAuth;
+    private final TokenManager tokenManager;
 
     @PostMapping("/member/register")
     public MemberDto registerMember(
@@ -32,28 +38,41 @@ public class MemberController {
         return MemberDto.mapper(member);
     }
 
-    @GetMapping("/activate/{id}")
-    public MemberDto activate(@PathVariable Long id) {
-        Assert.isTrue(id != null, "id가 비었습니다.");
-        Member activated = memberRegister.activate(id);;
+    @GetMapping("/activate")
+    public MemberDto activate(
+            @RequestHeader(value = HttpHeaders.AUTHORIZATION)
+            String token) {
+        String extractedToken = TokenExtractor.extractToken(token);
+        Long memberId = tokenManager.extractMemberIdFromToken(extractedToken);
+
+        Member activated = memberRegister.activate(memberId);
 
         return MemberDto.mapper(activated);
     }
 
-    @GetMapping("/deactivate/{id}")
-    public MemberDto deactivate(@PathVariable Long id) {
-        Assert.isTrue(id != null, "id가 비었습니다.");
-        Member deactivated = memberRegister.deactivate(id);
+    @GetMapping("/deactivate")
+    public MemberDto deactivate(
+            @RequestHeader(value = HttpHeaders.AUTHORIZATION)
+            String token) {
+        String extractedToken = TokenExtractor.extractToken(token);
+        Long memberId = tokenManager.extractMemberIdFromToken(extractedToken);
+
+        Member deactivated = memberRegister.deactivate(memberId);
 
         return MemberDto.mapper(deactivated);
     }
 
-    @PutMapping("/update/{id}")
-    public MemberDto updateMember(@PathVariable Long id,
-                                  @RequestParam @Valid String nickname,
-                                  @RequestBody @Valid MemberDetailRequest detailRequest) {
-        Assert.isTrue(id != null, "id가 비었습니다.");
-        Member updatedMember = memberRegister.updateInfo(id, nickname, detailRequest);
+    @PutMapping("/update")
+    public MemberDto updateMember(
+            @RequestHeader(value = HttpHeaders.AUTHORIZATION)
+            String token,
+
+            @RequestParam @Valid String nickname,
+            @RequestBody @Valid MemberDetailRequest detailRequest) {
+        String extractedToken = TokenExtractor.extractToken(token);
+        Long memberId = tokenManager.extractMemberIdFromToken(extractedToken);
+
+        Member updatedMember = memberRegister.updateInfo(memberId, nickname, detailRequest);
 
         return MemberDto.mapper(updatedMember);
     }

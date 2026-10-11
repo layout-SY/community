@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
@@ -74,7 +75,7 @@ public class MemberControllerTest {
 
         @Test
         void 실패_409_email_중복() {
-            registerMemberApi("qwer@naver.com");
+            registerMemberApi("qwer123@naver.com");
             RegisterMemberRequest request = MemberFixture.getRegisterRequest();
 
             MvcTestResult exchange = mvcTester.post().uri("/member/register")
@@ -85,7 +86,7 @@ public class MemberControllerTest {
             Assertions.assertThat(exchange)
                     .hasStatus(HttpStatus.CONFLICT);
 
-            ProblemDetail problemDetail = getProblemDetailInApiResponse(exchange);
+            ProblemDetail problemDetail = apiResponseMapper(exchange, ProblemDetail.class);
 
             Assertions.assertThat(problemDetail.getDetail()).isEqualTo("이미 존재하는 이메일 입니다 : " + request.email());
         }
@@ -102,7 +103,7 @@ public class MemberControllerTest {
             Assertions.assertThat(exchange)
                     .hasStatus(HttpStatus.BAD_REQUEST);
 
-            ProblemDetail problemDetail = getProblemDetailInApiResponse(exchange);
+            ProblemDetail problemDetail = apiResponseMapper(exchange, ProblemDetail.class);
 
             Assertions.assertThat(problemDetail.getDetail()).isNotNull();
         }
@@ -122,43 +123,43 @@ public class MemberControllerTest {
     @DisplayName("회원 활성화")
     class Activation {
         @Test
-        void 성공() {
-            MemberDto registeredMember = registerMemberApi("qwer@naver.com");
-            MemberDto activatedMemberDto = activateMemberApi(registeredMember);
+        void 성공() throws UnsupportedEncodingException {
+            MemberDto memberDto = activateMemberApi();
 
-            Assertions.assertThat(activatedMemberDto.status()).isEqualTo(MemberStatus.ACTIVE);
-            Assertions.assertThat(activatedMemberDto.detail().getActivatedAt()).isNotNull();
+            Assertions.assertThat(memberDto.status()).isEqualTo(MemberStatus.ACTIVE);
+            Assertions.assertThat(memberDto.detail().getActivatedAt()).isNotNull();
         }
 
         @Test
-        void 실패_400_이미_activate() {
-            MemberDto registeredMember = registerMemberApi("qwer@naver.com");
-            MemberDto memberDto = activateMemberApi(registeredMember);
+        void 실패_400_이미_activate() throws UnsupportedEncodingException {
+            MemberDto memberDto = activateMemberApi();
 
             Assertions.assertThat(memberDto.status()).isEqualTo(MemberStatus.ACTIVE);
 
-            MvcTestResult exchange = mvcTester.get().uri("/activate/" + registeredMember.id())
+            LoginResponseDto loginResponseDto = loginMember(memberDto);
+
+            MvcTestResult exchange = mvcTester.get().uri("/activate")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + loginResponseDto.token().accessToken())
                     .contentType(MediaType.APPLICATION_JSON)
                     .exchange();
 
             Assertions.assertThat(exchange).hasStatus(HttpStatus.BAD_REQUEST);
 
-            ProblemDetail problemDetail = getProblemDetailInApiResponse(exchange);
+            ProblemDetail problemDetail = apiResponseMapper(exchange, ProblemDetail.class);
 
             Assertions.assertThat(problemDetail.getDetail()).isEqualTo("Member is already active.");
         }
 
         @Test
-        void 실패_400_유효하지_않은_id() {
-            registerMemberApi("qwe@naver.com");
+        void 실패_401_유효하지_않은_토큰_정보() throws UnsupportedEncodingException {
+            MemberDto memberDto = registerMemberApi("qwe@naver.com");
 
-            MvcTestResult exchange = mvcTester.get().uri("/activate/" + 123456 + "ba")
+            LoginResponseDto loginResponseDto = loginMember(memberDto);
+
+            MvcTestResult exchange = mvcTester.get().uri("/activate")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + loginResponseDto.token().accessToken())
                     .contentType(MediaType.APPLICATION_JSON)
                     .exchange();
-
-            ProblemDetail problemDetail = getProblemDetailInApiResponse(exchange);
-
-            Assertions.assertThat(exchange).hasStatus(HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -166,10 +167,15 @@ public class MemberControllerTest {
     @DisplayName("회원 비활성화")
     class Deactivation {
         @Test
-        void 성공() {
-            MemberDto activeMember = activateMemberApi(registerMemberApi("qwer@naver.com"));
+        void 성공() throws UnsupportedEncodingException {
+            MemberDto memberDto = activateMemberApi();
 
-            MvcTestResult exchange = mvcTester.get().uri("/deactivate/" + activeMember.id())
+            Assertions.assertThat(memberDto.status()).isEqualTo(MemberStatus.ACTIVE);
+
+            LoginResponseDto loginResponseDto = loginMember(memberDto);
+
+            MvcTestResult exchange = mvcTester.get().uri("/deactivate")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + loginResponseDto.token().accessToken())
                     .contentType(MediaType.APPLICATION_JSON)
                     .exchange();
 
@@ -182,42 +188,34 @@ public class MemberControllerTest {
         }
 
         @Test
-        void 실패_400_이미_deactivate() {
-            MemberDto registeredMember = registerMemberApi("qwer@naver.com");
-            MemberDto memberDto = activateMemberApi(registeredMember);
+        void 실패_400_이미_deactivate() throws UnsupportedEncodingException {
+            MemberDto memberDto = activateMemberApi();
 
-            MvcTestResult exchange1 = mvcTester.get().uri("/deactivate/" + registeredMember.id())
+            Assertions.assertThat(memberDto.status()).isEqualTo(MemberStatus.ACTIVE);
+
+            LoginResponseDto loginResponseDto = loginMember(memberDto);
+
+            MvcTestResult exchange1 = mvcTester.get().uri("/deactivate")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + loginResponseDto.token().accessToken())
                     .contentType(MediaType.APPLICATION_JSON)
                     .exchange();
 
             MemberDto deactivatedMemberDto = objectMapper.readValue(exchange1.getResponse().getContentAsByteArray(), MemberDto.class);
 
 
-            Assertions.assertThat(memberDto.status()).isEqualTo(MemberStatus.ACTIVE);
+            Assertions.assertThat(loginResponseDto.member().getStatus()).isEqualTo(MemberStatus.ACTIVE);
             Assertions.assertThat(deactivatedMemberDto.status()).isEqualTo(MemberStatus.DEACTIVATED);
 
-            MvcTestResult exchange = mvcTester.get().uri("/deactivate/" + registeredMember.id())
+            MvcTestResult exchange = mvcTester.get().uri("/deactivate")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + loginResponseDto.token().accessToken())
                     .contentType(MediaType.APPLICATION_JSON)
                     .exchange();
 
             Assertions.assertThat(exchange).hasStatus(HttpStatus.BAD_REQUEST);
 
-            ProblemDetail problemDetail = getProblemDetailInApiResponse(exchange);
+            ProblemDetail problemDetail = apiResponseMapper(exchange, ProblemDetail.class);
 
             Assertions.assertThat(problemDetail.getDetail()).isEqualTo("Member is already deactivate.");
-        }
-
-        @Test
-        void 실패_400_유효하지_않은_id() {
-            registerMemberApi("qwe@naver.com");
-
-            MvcTestResult exchange = mvcTester.get().uri("/deactivate/" + 123456 + "ba")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .exchange();
-
-            ProblemDetail problemDetail = getProblemDetailInApiResponse(exchange);
-
-            Assertions.assertThat(exchange).hasStatus(HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -225,10 +223,15 @@ public class MemberControllerTest {
     @DisplayName("회원 정보 수정")
     class ProfileUpdate {
         @Test
-        void 성공() {
-            MemberDto activeMember = activateMemberApi(registerMemberApi("qwer@naver.com"));
+        void 성공() throws UnsupportedEncodingException {
+            MemberDto memberDto = activateMemberApi();
 
-            MvcTestResult exchange = mvcTester.put().uri("/update/" + activeMember.id())
+            Assertions.assertThat(memberDto.status()).isEqualTo(MemberStatus.ACTIVE);
+
+            LoginResponseDto loginResponseDto = loginMember(memberDto);
+
+            MvcTestResult exchange = mvcTester.put().uri("/update")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + loginResponseDto.token().accessToken())
                     .contentType(MediaType.APPLICATION_JSON)
                     .param("nickname", "qwer123")
                     .content(objectMapper.writeValueAsString(MemberFixture.getMemberDetailRequest()))
@@ -244,10 +247,13 @@ public class MemberControllerTest {
         }
 
         @Test
-        void 실패_400_pending_deactivate_때_변경() {
+        void 실패_400_pending_deactivate_때_변경() throws UnsupportedEncodingException {
             MemberDto memberDto = registerMemberApi("qwer@naver.com");
 
-            MvcTestResult exchangePending = mvcTester.put().uri("/update/" + memberDto.id())
+            LoginResponseDto loginResponseDto = loginMember(memberDto);
+
+            MvcTestResult exchangePending = mvcTester.put().uri("/update")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + loginResponseDto.token().accessToken())
                     .contentType(MediaType.APPLICATION_JSON)
                     .param("nickname", "qwer123")
                     .content(objectMapper.writeValueAsString(MemberFixture.getMemberDetailRequest()))
@@ -255,11 +261,13 @@ public class MemberControllerTest {
 
             Assertions.assertThat(exchangePending).hasStatus(HttpStatus.BAD_REQUEST);
 
-            mvcTester.get().uri("/deactivate/" + memberDto.id())
+            mvcTester.get().uri("/deactivate")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + loginResponseDto.token().accessToken())
                     .contentType(MediaType.APPLICATION_JSON)
                     .exchange();
 
-            MvcTestResult exchangeDeactivate = mvcTester.put().uri("/update/" + memberDto.id())
+            MvcTestResult exchangeDeactivate = mvcTester.put().uri("/update")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + loginResponseDto.token().accessToken())
                     .contentType(MediaType.APPLICATION_JSON)
                     .param("nickname", "qwer123")
                     .content(objectMapper.writeValueAsString(MemberFixture.getMemberDetailRequest()))
@@ -267,9 +275,13 @@ public class MemberControllerTest {
 
             Assertions.assertThat(exchangeDeactivate).hasStatus(HttpStatus.BAD_REQUEST);
 
-            activateMemberApi(memberDto);
+            MvcTestResult exchangeActivate = mvcTester.get().uri("/activate")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + loginResponseDto.token().accessToken())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .exchange();
 
-            MvcTestResult exchange = mvcTester.put().uri("/update/" + memberDto.id())
+            MvcTestResult exchange = mvcTester.put().uri("/update")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + loginResponseDto.token().accessToken())
                     .contentType(MediaType.APPLICATION_JSON)
                     .param("nickname", "qwer123")
                     .content(objectMapper.writeValueAsString(MemberFixture.getMemberDetailRequest()))
@@ -280,10 +292,15 @@ public class MemberControllerTest {
         }
 
         @Test
-        void 실패_400_유효하지_않은_body() {
-            MemberDto activeMember = activateMemberApi(registerMemberApi("qwer@naver.com"));
+        void 실패_400_유효하지_않은_body() throws UnsupportedEncodingException {
+            MemberDto memberDto = activateMemberApi();
 
-            MvcTestResult exchange = mvcTester.put().uri("/update/" + activeMember.id())
+            Assertions.assertThat(memberDto.status()).isEqualTo(MemberStatus.ACTIVE);
+
+            LoginResponseDto loginResponseDto = loginMember(memberDto);
+
+            MvcTestResult exchange = mvcTester.put().uri("/update")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + loginResponseDto.token().accessToken())
                     .contentType(MediaType.APPLICATION_JSON)
                     .param("zxcv", "qwer123")
                     .content(objectMapper.writeValueAsString(MemberFixture.getMemberDetailRequest()))
@@ -305,16 +322,8 @@ public class MemberControllerTest {
         @Test
         void 성공() throws UnsupportedEncodingException {
             MemberDto memberDto = registerMemberApi("qwer@naver.com");
-            LoginRequest loginRequest = MemberFixture.getLoginRequest(new Email(memberDto.email()), "qwe123");
 
-            MvcTestResult exchange = mvcTester.post().uri("/member/login")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(loginRequest))
-                    .exchange();
-
-            Assertions.assertThat(exchange).hasStatus(HttpStatus.OK);
-
-            LoginResponseDto loginResponseDto = objectMapper.readValue(exchange.getResponse().getContentAsString(), LoginResponseDto.class);
+            LoginResponseDto loginResponseDto = loginMember(memberDto);
 
             Assertions.assertThat(loginResponseDto).isNotNull();
             Assertions.assertThat(loginResponseDto.member().getEmail().getAddress()).isEqualTo(memberDto.email());
@@ -335,20 +344,36 @@ public class MemberControllerTest {
 
         Assertions.assertThat(exchange).hasStatus(HttpStatus.OK);
 
-        return objectMapper.readValue(exchange.getResponse().getContentAsByteArray(), MemberDto.class);
+        return apiResponseMapper(exchange, MemberDto.class);
     }
 
-    private @NonNull MemberDto activateMemberApi(MemberDto member) {
-        MvcTestResult exchange = mvcTester.get().uri("/activate/" + member.id())
+    private @NonNull MemberDto activateMemberApi() throws UnsupportedEncodingException {
+        MemberDto memberDto = registerMemberApi("qwer123@naver.com");
+
+        LoginResponseDto loginResponseDto = loginMember(memberDto);
+
+        MvcTestResult exchange = mvcTester.get().uri("/activate")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + loginResponseDto.token().accessToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .exchange();
 
         Assertions.assertThat(exchange).hasStatus(HttpStatus.OK);
 
-        return objectMapper.readValue(exchange.getResponse().getContentAsByteArray(), MemberDto.class);
+        return apiResponseMapper(exchange, MemberDto.class);
     }
 
-    private ProblemDetail getProblemDetailInApiResponse(MvcTestResult exchange) {
-        return objectMapper.readValue(exchange.getResponse().getContentAsByteArray(), ProblemDetail.class);
+    private LoginResponseDto loginMember(MemberDto memberDto) throws UnsupportedEncodingException {
+        LoginRequest loginRequest = MemberFixture.getLoginRequest(new Email(memberDto.email()), "qwe123");
+
+        MvcTestResult loginExchange = mvcTester.post().uri("/member/login")
+                .content(objectMapper.writeValueAsString(loginRequest))
+                .contentType(MediaType.APPLICATION_JSON)
+                .exchange();
+
+        return apiResponseMapper(loginExchange, LoginResponseDto.class);
+    }
+
+    private <T> T apiResponseMapper(MvcTestResult exchange, Class<T> mapperObject) {;
+        return objectMapper.readValue(exchange.getResponse().getContentAsByteArray(), mapperObject);
     }
 }
