@@ -1,5 +1,6 @@
 package tobyspring.community.adapter;
 
+import org.h2.security.auth.AuthenticationException;
 import org.jspecify.annotations.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -8,6 +9,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import tobyspring.community.adapter.security.AuthenticateException;
 import tobyspring.community.application.AlreadyStateException;
 import tobyspring.community.application.DuplicateEmailException;
 import tobyspring.community.application.NotFoundException;
@@ -33,6 +35,11 @@ public class ControllerAdvice extends ResponseEntityExceptionHandler {
     @ExceptionHandler(value = {NotFoundException.class})
     protected ProblemDetail notFoundException(NotFoundException ex) {
         return setProblemDetailWithRuntimeException(ex, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(value = {AuthenticationException.class})
+    protected ProblemDetail authenticateException(AuthenticateException ex) {
+        return setProblemDetailWithRuntimeException(ex, HttpStatus.UNAUTHORIZED);
     }
 
     private static @NonNull ProblemDetail setProblemDetailWithRuntimeException(RuntimeException ex, HttpStatus httpStatus) {
