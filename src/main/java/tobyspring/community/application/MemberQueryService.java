@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import tobyspring.community.application.provided.MemberFinder;
 import tobyspring.community.application.required.MemberRepository;
 import tobyspring.community.domain.member.Member;
+import tobyspring.community.domain.shared.Email;
 
 @Service
 @RequiredArgsConstructor
@@ -17,5 +18,12 @@ public class MemberQueryService implements MemberFinder {
     public Member findById(Long memberId) {
         return memberRepository.findById(memberId).orElseThrow(
                 () -> new NotFoundException("회원 정보가 없습니다. : " + memberId));
+    }
+
+    @Override
+    public Member findByEmail(Email email) {
+        return memberRepository.findByEmail(email).orElseThrow(
+                () -> new NotFoundException("회원 정보가 없습니다 : " + email)
+        );
     }
 }
