@@ -3,6 +3,7 @@ package tobyspring.community.domain.member;
 import org.jspecify.annotations.NonNull;
 import tobyspring.community.adapter.security.PasswordEncode;
 import tobyspring.community.adapter.security.PasswordEncodeImpl;
+import tobyspring.community.domain.shared.Email;
 
 public class MemberFixture {
     public static @NonNull RegisterMemberRequest getRegisterRequest() {
@@ -15,6 +16,10 @@ public class MemberFixture {
 
     public static @NonNull RegisterMemberRequest getRegisterRequest(String email, String nickname, String password) {
         return new RegisterMemberRequest(email, nickname, password);
+    }
+
+    public static @NonNull LoginRequest getLoginRequest(Email email, String password) {
+        return new LoginRequest(email, password);
     }
 
     public static @NonNull PasswordEncode createPasswordEncoder() {

@@ -15,14 +15,14 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 import org.springframework.test.web.servlet.assertj.MvcTestResult;
+import tobyspring.community.adapter.security.TokenManager;
 import tobyspring.community.adapter.webapi.MemberDto;
 import tobyspring.community.application.required.MemberRepository;
-import tobyspring.community.domain.member.Member;
-import tobyspring.community.domain.member.MemberFixture;
-import tobyspring.community.domain.member.MemberStatus;
-import tobyspring.community.domain.member.RegisterMemberRequest;
+import tobyspring.community.domain.member.*;
+import tobyspring.community.domain.shared.Email;
 import tools.jackson.databind.ObjectMapper;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
 @SpringBootTest
@@ -293,6 +293,36 @@ public class MemberControllerTest {
         }
     }
 
+    @Nested
+    @DisplayName("로그인")
+    class Login {
+        private final TokenManager tokenManager;
+
+        Login(TokenManager tokenManager) {
+            this.tokenManager = tokenManager;
+        }
+
+        @Test
+        void 성공() throws UnsupportedEncodingException {
+            MemberDto memberDto = registerMemberApi("qwer@naver.com");
+            LoginRequest loginRequest = MemberFixture.getLoginRequest(new Email(memberDto.email()), "qwe123");
+
+            MvcTestResult exchange = mvcTester.post().uri("/member/login")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(loginRequest))
+                    .exchange();
+
+            Assertions.assertThat(exchange).hasStatus(HttpStatus.OK);
+
+            LoginResponseDto loginResponseDto = objectMapper.readValue(exchange.getResponse().getContentAsString(), LoginResponseDto.class);
+
+            Assertions.assertThat(loginResponseDto).isNotNull();
+            Assertions.assertThat(loginResponseDto.member().getEmail().getAddress()).isEqualTo(memberDto.email());
+
+            String email = tokenManager.extractEmailFromToken(loginResponseDto.token().accessToken());
+            Assertions.assertThat(email).isEqualTo(loginResponseDto.member().getEmail().getAddress());
+        }
+    }
 
     private @NonNull MemberDto registerMemberApi(String email) {
 

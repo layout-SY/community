@@ -4,12 +4,11 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
+import tobyspring.community.application.MemberAuth;
 import tobyspring.community.application.provided.MemberFinder;
 import tobyspring.community.application.provided.MemberRegister;
-import tobyspring.community.domain.member.Member;
-import tobyspring.community.domain.member.MemberDetailRequest;
-import tobyspring.community.domain.member.MemberFixture;
-import tobyspring.community.domain.member.RegisterMemberRequest;
+import tobyspring.community.domain.member.*;
+import tobyspring.community.domain.shared.Email;
 
 @RestController
 @RequiredArgsConstructor
@@ -17,6 +16,7 @@ public class MemberController {
 
     private final MemberRegister memberRegister;
     private final MemberFinder memberFinder;
+    private final MemberAuth memberAuth;
 
     @PostMapping("/member/register")
     public MemberDto registerMember(
@@ -63,5 +63,10 @@ public class MemberController {
         Member memberById = memberFinder.findById(id);
 
         return MemberDto.mapper(memberById);
+    }
+
+    @PostMapping("/member/login")
+    public LoginResponseDto login(@RequestBody LoginRequest request) {
+        return memberAuth.login(request.email(), request.password());
     }
 }
