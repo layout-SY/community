@@ -16,7 +16,7 @@ public record MemberDto(
     public static MemberDto mapper(Member member) {
         return new MemberDto(
                 member.getId(),
-                member.getEmail().toString(),
+                member.getEmail().getAddress(),
                 member.getNickname(),
                 member.getStatus(),
                 member.getDetail()
