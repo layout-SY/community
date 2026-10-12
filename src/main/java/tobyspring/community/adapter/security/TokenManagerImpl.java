@@ -63,12 +63,17 @@ public class TokenManagerImpl implements TokenManager{
     @Override
     public Long extractMemberIdFromToken(String token) {
 
-        Object memberId = Jwts.parser()
-                .verifyWith(key)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .get("memberId");
+        Object memberId = null;
+        try {
+            memberId = Jwts.parser()
+                    .verifyWith(key)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload()
+                    .get("memberId");
+        }catch (JwtException ex) {
+            throw new AuthenticateException("유효하지 않은 토큰입니다.");
+        }
 
         if(memberId instanceof Integer) {
             return ((Integer) memberId).longValue();

@@ -121,7 +121,6 @@ public class MemberControllerTest {
         }
 
         @Test
-        @Disabled("유효하지 않은 토큰이 아직 401로 변환되지 않음 : extractMemberIdFromToken의 JwtException 미처리, ControllerAdvice의 예외 타입 불일치")
         void 실패_401_유효하지_않은_토큰_정보() {
             MvcTestResult exchange = activate("invalid-token");
 

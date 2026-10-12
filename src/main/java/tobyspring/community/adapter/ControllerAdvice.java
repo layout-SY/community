@@ -37,7 +37,7 @@ public class ControllerAdvice extends ResponseEntityExceptionHandler {
         return setProblemDetailWithRuntimeException(ex, HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(value = {AuthenticationException.class})
+    @ExceptionHandler(value = {AuthenticateException.class})
     protected ProblemDetail authenticateException(AuthenticateException ex) {
         return setProblemDetailWithRuntimeException(ex, HttpStatus.UNAUTHORIZED);
     }
