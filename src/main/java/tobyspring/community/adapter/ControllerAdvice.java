@@ -11,6 +11,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import tobyspring.community.adapter.security.AuthenticateException;
 import tobyspring.community.application.AlreadyStateException;
+import tobyspring.community.application.DeactivateMemberException;
 import tobyspring.community.application.DuplicateEmailException;
 import tobyspring.community.application.NotFoundException;
 
@@ -40,6 +41,11 @@ public class ControllerAdvice extends ResponseEntityExceptionHandler {
     @ExceptionHandler(value = {AuthenticateException.class})
     protected ProblemDetail authenticateException(AuthenticateException ex) {
         return setProblemDetailWithRuntimeException(ex, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(value = {DeactivateMemberException.class})
+    protected ProblemDetail DeactivateMemberException(DeactivateMemberException ex) {
+        return setProblemDetailWithRuntimeException(ex, HttpStatus.BAD_REQUEST);
     }
 
     private static @NonNull ProblemDetail setProblemDetailWithRuntimeException(RuntimeException ex, HttpStatus httpStatus) {
