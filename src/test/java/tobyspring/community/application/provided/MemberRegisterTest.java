@@ -87,7 +87,7 @@ record MemberRegisterTest(MemberRegister memberRegister, MemberRepository member
     }
 
     @Test
-    void 회원_deactivate_실패_activate_아님() {
+    void 회원_deactivate_성공_activate_아님() {
         Member member = memberRegister.register(MemberFixture.getRegisterRequest());
 
         Assertions.assertThat(member.getStatus()).isEqualTo(MemberStatus.PENDING);
@@ -95,8 +95,9 @@ record MemberRegisterTest(MemberRegister memberRegister, MemberRepository member
         entityManager.flush();
         entityManager.clear();
 
-        Assertions.assertThatThrownBy(
-                () -> memberRegister.deactivate(member.getId())).isInstanceOf(IllegalStateException.class);
+        Member deactivated = memberRegister.deactivate(member.getId());
+
+        Assertions.assertThat(deactivated.getStatus()).isEqualTo(MemberStatus.DEACTIVATED);
     }
 
     @Test
