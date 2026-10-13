@@ -9,12 +9,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 import org.springframework.test.web.servlet.assertj.MvcTestResult;
+import tobyspring.community.TestFixture;
 import tobyspring.community.adapter.security.TokenManager;
 import tobyspring.community.adapter.webapi.MemberDto;
 import tobyspring.community.application.required.MemberRepository;
@@ -30,11 +32,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @AutoConfigureMockMvc
 @Transactional
+@Import(TestFixture.class)
 public class MemberControllerTest {
     private final MockMvcTester mvcTester;
-    private final ObjectMapper objectMapper;
     private final MemberRepository memberRepository;
     private final TokenManager tokenManager;
+    private final TestFixture testFixture;
 
     @Nested
     @DisplayName("회원 생성")
@@ -63,7 +66,7 @@ public class MemberControllerTest {
 
         @Test
         void 실패_400_body_email_없음() {
-            MvcTestResult exchange = register(toJson(Map.of("nickname", "qwer123", "password", "zxcv123!")));
+            MvcTestResult exchange = register(testFixture.toJson(Map.of("nickname", "qwer123", "password", "zxcv123!")));
 
             assertThat(exchange).hasStatus(HttpStatus.BAD_REQUEST);
         }
@@ -73,17 +76,17 @@ public class MemberControllerTest {
             RegisterMemberRequest request = MemberFixture.getRegisterRequest();
             registerMember(request);
 
-            MvcTestResult exchange = register(toJson(request));
+            MvcTestResult exchange = register(testFixture.toJson(request));
 
-            assertProblem(exchange, HttpStatus.CONFLICT, "이미 존재하는 이메일 입니다 : " + request.email());
+            testFixture.assertProblem(exchange, HttpStatus.CONFLICT, "이미 존재하는 이메일 입니다 : " + request.email());
         }
 
         @Test
         void 실패_400_email_형식_아님() {
-            MvcTestResult exchange = register(toJson(MemberFixture.getRegisterRequest("invalid email")));
+            MvcTestResult exchange = register(testFixture.toJson(MemberFixture.getRegisterRequest("invalid email")));
 
             assertThat(exchange).hasStatus(HttpStatus.BAD_REQUEST);
-            assertThat(readBody(exchange, ProblemDetail.class).getDetail()).isNotNull();
+            assertThat(testFixture.readBody(exchange, ProblemDetail.class).getDetail()).isNotNull();
         }
 
         @Test
@@ -105,7 +108,7 @@ public class MemberControllerTest {
 
             assertThat(exchange).hasStatus(HttpStatus.OK);
 
-            MemberDto activated = readBody(exchange, MemberDto.class);
+            MemberDto activated = testFixture.readBody(exchange, MemberDto.class);
 
             assertThat(activated.status()).isEqualTo(MemberStatus.ACTIVE);
             assertThat(activated.detail().getActivatedAt()).isNotNull();
@@ -117,7 +120,7 @@ public class MemberControllerTest {
 
             MvcTestResult exchange = activate(active.accessToken());
 
-            assertProblem(exchange, HttpStatus.BAD_REQUEST, "Member is already active.");
+            testFixture.assertProblem(exchange, HttpStatus.BAD_REQUEST, "Member is already active.");
         }
 
         @Test
@@ -139,7 +142,7 @@ public class MemberControllerTest {
 
             assertThat(exchange).hasStatus(HttpStatus.OK);
 
-            MemberDto deactivated = readBody(exchange, MemberDto.class);
+            MemberDto deactivated = testFixture.readBody(exchange, MemberDto.class);
 
             assertThat(deactivated.status()).isEqualTo(MemberStatus.DEACTIVATED);
             assertThat(deactivated.detail().getDeactivatedAt()).isNotNull();
@@ -151,7 +154,7 @@ public class MemberControllerTest {
 
             MvcTestResult exchange = deactivate(deactivated.accessToken());
 
-            assertProblem(exchange, HttpStatus.BAD_REQUEST, "Member is already deactivate.");
+            testFixture.assertProblem(exchange, HttpStatus.BAD_REQUEST, "Member is already deactivate.");
         }
     }
 
@@ -166,7 +169,7 @@ public class MemberControllerTest {
 
             assertThat(exchange).hasStatus(HttpStatus.OK);
 
-            MemberDto updated = readBody(exchange, MemberDto.class);
+            MemberDto updated = testFixture.readBody(exchange, MemberDto.class);
 
             assertThat(updated.status()).isEqualTo(MemberStatus.ACTIVE);
             assertThat(updated.detail().getProfile().profile_address()).isEqualTo("qwerasdf");
@@ -198,7 +201,7 @@ public class MemberControllerTest {
             MvcTestResult exchange = mvcTester.put().uri("/update")
                     .header(HttpHeaders.AUTHORIZATION, bearer(active.accessToken()))
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(toJson(MemberFixture.getMemberDetailRequest()))
+                    .content(testFixture.toJson(MemberFixture.getMemberDetailRequest()))
                     .exchange();
 
             assertThat(exchange).hasStatus(HttpStatus.BAD_REQUEST);
@@ -217,7 +220,7 @@ public class MemberControllerTest {
 
             assertThat(exchange).hasStatus(HttpStatus.OK);
 
-            LoginResponseDto loginResponse = readBody(exchange, LoginResponseDto.class);
+            LoginResponseDto loginResponse = testFixture.readBody(exchange, LoginResponseDto.class);
 
             assertThat(loginResponse.member().getEmail().getAddress()).isEqualTo(registeredMember.email());
             assertThat(tokenManager.extractEmailFromToken(loginResponse.token().accessToken()))
@@ -231,11 +234,11 @@ public class MemberControllerTest {
     }
 
     private MemberDto registerMember(RegisterMemberRequest request) {
-        MvcTestResult exchange = register(toJson(request));
+        MvcTestResult exchange = register(testFixture.toJson(request));
 
         assertThat(exchange).hasStatus(HttpStatus.OK);
 
-        return readBody(exchange, MemberDto.class);
+        return testFixture.readBody(exchange, MemberDto.class);
     }
 
     private AuthenticatedMember registerAndLogin() {
@@ -246,7 +249,7 @@ public class MemberControllerTest {
 
         assertThat(exchange).hasStatus(HttpStatus.OK);
 
-        return new AuthenticatedMember(member, readBody(exchange, LoginResponseDto.class).token().accessToken());
+        return new AuthenticatedMember(member, testFixture.readBody(exchange, LoginResponseDto.class).token().accessToken());
     }
 
     private AuthenticatedMember activeMember() {
@@ -256,7 +259,7 @@ public class MemberControllerTest {
 
         assertThat(exchange).hasStatus(HttpStatus.OK);
 
-        return new AuthenticatedMember(readBody(exchange, MemberDto.class), pending.accessToken());
+        return new AuthenticatedMember(testFixture.readBody(exchange, MemberDto.class), pending.accessToken());
     }
 
     private AuthenticatedMember deactivatedMember() {
@@ -266,7 +269,7 @@ public class MemberControllerTest {
 
         assertThat(exchange).hasStatus(HttpStatus.OK);
 
-        return new AuthenticatedMember(readBody(exchange, MemberDto.class), active.accessToken());
+        return new AuthenticatedMember(testFixture.readBody(exchange, MemberDto.class), active.accessToken());
     }
 
     // API 호출
@@ -281,7 +284,7 @@ public class MemberControllerTest {
     private MvcTestResult login(String email, String password) {
         return mvcTester.post().uri("/member/login")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(toJson(MemberFixture.getLoginRequest(new Email(email), password)))
+                .content(testFixture.toJson(MemberFixture.getLoginRequest(new Email(email), password)))
                 .exchange();
     }
 
@@ -302,7 +305,7 @@ public class MemberControllerTest {
                 .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
                 .contentType(MediaType.APPLICATION_JSON)
                 .param("nickname", nickname)
-                .content(toJson(detailRequest))
+                .content(testFixture.toJson(detailRequest))
                 .exchange();
     }
 
@@ -310,18 +313,5 @@ public class MemberControllerTest {
         return "Bearer " + accessToken;
     }
 
-    // 응답 변환 및 검증
 
-    private String toJson(Object body) {
-        return objectMapper.writeValueAsString(body);
-    }
-
-    private <T> T readBody(MvcTestResult exchange, Class<T> type) {
-        return objectMapper.readValue(exchange.getResponse().getContentAsByteArray(), type);
-    }
-
-    private void assertProblem(MvcTestResult exchange, HttpStatus status, String detail) {
-        assertThat(exchange).hasStatus(status);
-        assertThat(readBody(exchange, ProblemDetail.class).getDetail()).isEqualTo(detail);
-    }
 }
