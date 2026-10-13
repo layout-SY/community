@@ -55,7 +55,6 @@ public class Member extends EntityAbstract {
     }
 
     public void deactivate() {
-        Assert.state(this.status == MemberStatus.ACTIVE, "Member is not active");
         this.status = MemberStatus.DEACTIVATED;
         this.detail.deactivate();
     }

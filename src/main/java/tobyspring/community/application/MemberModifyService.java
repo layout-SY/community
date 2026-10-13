@@ -55,7 +55,7 @@ public class MemberModifyService implements MemberRegister {
     public Member deactivate(Long id) {
         Member member = memberFinder.findById(id);
 
-        if((member.getStatus() != MemberStatus.DEACTIVATED) && (member.getStatus() == MemberStatus.ACTIVE)) {
+        if(member.getStatus() != MemberStatus.DEACTIVATED) {
             member.deactivate();
             memberRepository.save(member);
         }else {
