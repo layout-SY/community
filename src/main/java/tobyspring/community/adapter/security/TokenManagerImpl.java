@@ -13,7 +13,7 @@ import javax.crypto.SecretKey;
 import java.util.Date;
 
 @Component
-public class TokenManagerImpl implements TokenManager{
+public class TokenManagerImpl implements TokenManager {
     private final SecretKey key;
     private final long expiration = 24 * 60 * 60 * 1000;
 

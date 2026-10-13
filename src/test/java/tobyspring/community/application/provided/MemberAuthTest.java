@@ -34,7 +34,7 @@ public class MemberAuthTest {
 
     @Nested
     @DisplayName("로그인")
-    class 로그인 {
+    class Login {
         @Test
         void 로그인_성공() {
             Member member = memberRegister.register(MemberFixture.getRegisterRequest());

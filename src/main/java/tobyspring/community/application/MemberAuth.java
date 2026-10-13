@@ -35,11 +35,4 @@ public class MemberAuth implements MemberLogin {
 
         return new LoginResponseDto(byEmail, tokenResult);
     }
-
-    @Override
-    public String logout(RegisterMemberRequest request) {
-
-
-        return "";
-    }
 }
