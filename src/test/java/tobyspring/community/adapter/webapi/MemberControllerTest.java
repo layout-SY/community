@@ -1,7 +1,8 @@
-package tobyspring.community.application.webapi;
+package tobyspring.community.adapter.webapi;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -206,6 +207,64 @@ public class MemberControllerTest {
 
             assertThat(exchange).hasStatus(HttpStatus.BAD_REQUEST);
         }
+
+        @Test
+        void 실패_detail_body_없음() {
+            AuthenticatedMember active = activeMember();
+
+            MvcTestResult exchange = mvcTester.put().uri("/update")
+                    .header(HttpHeaders.AUTHORIZATION, bearer(active.accessToken()))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .exchange();
+
+            assertThat(exchange).hasStatus(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @Nested
+    @DisplayName("회원id로 조회")
+    class getMember {
+        @Test
+        void 성공() {
+            MemberDto memberDto = registerMember(MemberFixture.getRegisterRequest());
+
+            MvcTestResult exchange = getMember(memberDto);
+
+            MemberDto memberResponse = testFixture.readBody(exchange, MemberDto.class);
+
+            assertThat(exchange).hasStatus(HttpStatus.OK);
+            assertThat(memberResponse.id()).isEqualTo(memberDto.id());
+        }
+
+
+
+        @Test
+        void 실패_404_없는_member() {
+            MemberDto memberDto = registerMember(MemberFixture.getRegisterRequest());
+
+            MvcTestResult exchange = mvcTester.get().uri("/member/" + 1234)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .exchange();
+
+            ProblemDetail problemDetail = testFixture.readBody(exchange, ProblemDetail.class);
+
+            assertThat(exchange).hasStatus(HttpStatus.NOT_FOUND);
+            assertThat(problemDetail.getDetail()).isEqualTo("회원 정보가 없습니다. : " + 1234);
+        }
+
+        @Test
+        void 실패_404_문자가_들어간_memberId() {
+            MemberDto memberDto = registerMember(MemberFixture.getRegisterRequest());
+
+            MvcTestResult exchange = mvcTester.get().uri("/member/" + "1234abc")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .exchange();
+
+            ProblemDetail problemDetail = testFixture.readBody(exchange, ProblemDetail.class);
+
+            assertThat(exchange).hasStatus(HttpStatus.BAD_REQUEST);
+            assertThat(problemDetail.getDetail()).isEqualTo("Failed to convert 'id' with value: '1234abc'");
+        }
     }
 
     @Nested
@@ -306,6 +365,12 @@ public class MemberControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .param("nickname", nickname)
                 .content(testFixture.toJson(detailRequest))
+                .exchange();
+    }
+
+    private @NonNull MvcTestResult getMember(MemberDto memberDto) {
+        return mvcTester.get().uri("/member/" + memberDto.id())
+                .contentType(MediaType.APPLICATION_JSON)
                 .exchange();
     }
 

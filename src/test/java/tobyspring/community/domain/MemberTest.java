@@ -66,7 +66,6 @@ public class MemberTest {
         );
     }
 
-
     @Test
     void 비밀번호_검증() {
         Assertions.assertThat(member.verifyPassword("qwe123", passwordEncode));
