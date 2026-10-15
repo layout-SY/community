@@ -63,32 +63,31 @@ public class Post extends EntityAbstract {
         return post;
     }
 
-    public Post modify(Post post, ModifyPostRequest request) {
+    public void modify(ModifyPostRequest request) {
         requireNonNull(request);
 
-        post.title = request.title().orElse(this.title);
-        post.content = request.content().orElse(this.content);
-//        post.tags = request.tags().map(tags);
+        title = request.titleValue().orElse(this.title);
+        content = request.contentValue().orElse(this.content);
+        request.tagsValue().ifPresent(list ->
+                tags = list.stream()
+                        .map(Tag::new)
+                        .collect(Collectors.toCollection(ArrayList::new)));
 
-        post.modifiedAt = LocalDateTime.now();
+        imageUrl = request.imageUrlsValue().orElse(this.imageUrl);
 
-        return post;
+        modifiedAt = LocalDateTime.now();
     }
 
-    public Post like(Post post) {
-        post.likes = post.likes + 1;
-
-        return post;
+    public void like() {
+        likes = this.likes + 1;
     }
 
-    public Post unlike(Post post) {
-        post.likes = post.likes - 1;
-
-        return post;
+    public void unlike() {
+        likes = this.likes - 1;
     }
 
-    public void suspendPost(Post post) {
-        post.status = PostStatus.SUSPENDED;
+    public void suspendPost() {
+        status = PostStatus.SUSPENDED;
     }
 
 }
