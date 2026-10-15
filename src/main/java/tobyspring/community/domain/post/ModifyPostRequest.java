@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 public record ModifyPostRequest(
         @Size(min = 1, max = 15) String title,
         @Size(min = 1, max = 200) String content,
+        PostCategory category,
         List<String> tags,
         List<String> imageUrls
 ) {
@@ -22,6 +23,10 @@ public record ModifyPostRequest(
 
     public Optional<String> contentValue() {
         return Optional.ofNullable(content);
+    }
+
+    public Optional<PostCategory> categoryValue() {
+        return Optional.ofNullable(category);
     }
 
     public Optional<List<String>> tagsValue() {

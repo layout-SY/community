@@ -1,6 +1,6 @@
 package tobyspring.community.domain.post;
 
-enum PostCategory {
+public enum PostCategory {
     FASHION,
     COOK,
     SOCIAL,

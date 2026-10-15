@@ -68,6 +68,7 @@ public class Post extends EntityAbstract {
 
         title = request.titleValue().orElse(this.title);
         content = request.contentValue().orElse(this.content);
+        category = request.categoryValue().orElse(this.category);
         request.tagsValue().ifPresent(list ->
                 tags = list.stream()
                         .map(Tag::new)
