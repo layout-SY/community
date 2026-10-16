@@ -48,6 +48,11 @@ public class ControllerAdvice extends ResponseEntityExceptionHandler {
         return setProblemDetailWithRuntimeException(ex, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(value = {NullPointerException.class})
+    protected ProblemDetail nullPointerException(NullPointerException ex) {
+        return setProblemDetailWithRuntimeException(ex, HttpStatus.BAD_REQUEST);
+    }
+
     private static @NonNull ProblemDetail setProblemDetailWithRuntimeException(RuntimeException ex, HttpStatus httpStatus) {
         String message = ex.getMessage();
 
