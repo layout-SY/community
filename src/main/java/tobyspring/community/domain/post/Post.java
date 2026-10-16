@@ -46,10 +46,12 @@ public class Post extends EntityAbstract {
     public static Post post(CreatePostRequest request) {
         Post post = new Post();
 
-        post.title = requireNonNull(request.title());
-        post.content = requireNonNull(request.content());
+        requireNonNull(request, "요청이 null일 수 없습니다.");
+
+        post.title = requireNonNull(request.title(), "제목은 필수 입력입니다. : " + request.title());
+        post.content = requireNonNull(request.content(), "본문은 필수 입력입니다. : " + request.content());
         post.memberId = requireNonNull(request.memberId());
-        post.category = requireNonNull(request.category());
+        post.category = request.category() == null ? PostCategory.ETC : request.category();
         post.imageUrl = request.imageUrls();
         if (request.tags() != null && !request.tags().isEmpty()) {
             post.tags = request.tags().stream()
