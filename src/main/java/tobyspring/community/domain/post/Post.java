@@ -79,11 +79,11 @@ public class Post extends EntityAbstract {
         modifiedAt = LocalDateTime.now();
     }
 
-    public void like() {
+    public void like(Long memberId) {
         likes = this.likes + 1;
     }
 
-    public void unlike() {
+    public void unlike(Long memberId) {
         likes = this.likes - 1;
     }
 

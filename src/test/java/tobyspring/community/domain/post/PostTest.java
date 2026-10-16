@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import tobyspring.community.adapter.security.PasswordEncode;
 import tobyspring.community.adapter.security.PasswordEncodeImpl;
+import tobyspring.community.application.InvalidParameterException;
 import tobyspring.community.domain.member.Member;
 import tobyspring.community.domain.member.MemberFixture;
 
@@ -16,7 +17,7 @@ import java.util.List;
 public class PostTest {
 
     @Nested
-    @DisplayName("게시글")
+    @DisplayName("게시글 생성")
     class Posting {
         Member member;
         PasswordEncode passwordEncode = new PasswordEncodeImpl();
@@ -36,6 +37,15 @@ public class PostTest {
             post.getTags().forEach(
                     tag -> Assertions.assertThat(tags.contains(tag.keyword())).isTrue()
             );
+        }
+
+        @Test
+        void 실패_null_포함() {
+            List<String> tags = PostFixture.getTags("java", "js", null, "jjj");
+
+            Assertions.assertThatThrownBy(
+                    () -> Post.post(PostFixture.getCreatePostRequest(1L, tags))
+            ).isInstanceOf(InvalidParameterException.class);
         }
     }
 }

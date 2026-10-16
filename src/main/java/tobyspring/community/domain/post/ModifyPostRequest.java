@@ -37,10 +37,11 @@ public record ModifyPostRequest(
         return Optional.ofNullable(imageUrls);
     }
 
+    // Tag 값 객체엔 null에 관한 허용식이 있는데, 여기서 null 필터를 해버리면 정책이 달라짐.
     private static List<String> sanitize(List<String> value) {
         if (value == null) return null;
         return value.stream()
-                .filter(Objects::nonNull)
+//                .filter(Objects::nonNull)
                 .map(String::trim)
                 .filter(item -> !item.isEmpty())
                 .toList();

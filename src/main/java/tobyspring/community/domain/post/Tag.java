@@ -8,6 +8,7 @@ record Tag(String keyword) {
     private static final Pattern TAG_PATTERN = Pattern.compile("^[가-힣a-zA-Z0-9]+$");
 
     Tag {
+        if(keyword == null) throw new InvalidParameterException("태그명엔 null이 들어갈 수 없습니다.");
         String trimmed = keyword.trim();
 
         if(!TAG_PATTERN.matcher(trimmed).matches()) {
