@@ -1,11 +1,8 @@
-package tobyspring.community.domain;
+package tobyspring.community.domain.member;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import tobyspring.community.domain.member.MemberDetailRequest;
-import tobyspring.community.domain.member.Member;
-import tobyspring.community.domain.member.MemberStatus;
 import tobyspring.community.adapter.security.PasswordEncode;
 
 import static tobyspring.community.domain.member.MemberFixture.createPasswordEncoder;
