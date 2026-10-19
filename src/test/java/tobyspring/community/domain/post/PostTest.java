@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.core.parameters.P;
 import tobyspring.community.adapter.security.PasswordEncode;
 import tobyspring.community.adapter.security.PasswordEncodeImpl;
 import tobyspring.community.application.InvalidParameterException;
@@ -177,6 +178,60 @@ public class PostTest {
             Assertions.assertThatThrownBy(
                     () -> post.modify(null)
             ).isInstanceOf(NullPointerException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("좋아요")
+    class Like {
+        Post post;
+
+        @BeforeEach
+        void setup() {
+            post = Post.post(PostFixture.getCreatePostRequest(1L));
+            Assertions.assertThat(post.getStatus()).isEqualTo(PostStatus.POSTED);
+        }
+
+        @Test
+        void 성공() {
+            post.like();
+            Assertions.assertThat(post.getLikes()).isEqualTo(1);
+        }
+    }
+
+    @Nested
+    @DisplayName("싫어요")
+    class Unlike {
+        Post post;
+
+        @BeforeEach
+        void setup() {
+            post = Post.post(PostFixture.getCreatePostRequest(1L));
+            Assertions.assertThat(post.getStatus()).isEqualTo(PostStatus.POSTED);
+        }
+
+        @Test
+        void 성공() {
+            post.unlike();
+            Assertions.assertThat(post.getLikes()).isEqualTo(-1);
+        }
+    }
+
+    @Nested
+    @DisplayName("정지된 게시글")
+    class Suspended {
+        Post post;
+
+        @BeforeEach
+        void setup() {
+            post = Post.post(PostFixture.getCreatePostRequest(1L));
+            Assertions.assertThat(post.getStatus()).isEqualTo(PostStatus.POSTED);
+        }
+
+        @Test
+        void 성공() {
+            post.suspendPost();
+            Assertions.assertThat(post.getStatus()).isEqualTo(PostStatus.SUSPENDED);
         }
     }
 }
