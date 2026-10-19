@@ -1,9 +1,11 @@
 package tobyspring.community.domain.post;
 
+import jakarta.persistence.Embeddable;
 import tobyspring.community.application.InvalidParameterException;
 
 import java.util.regex.Pattern;
 
+@Embeddable
 record Tag(String keyword) {
     private static final Pattern TAG_PATTERN = Pattern.compile("^[가-힣a-zA-Z0-9]+$");
 

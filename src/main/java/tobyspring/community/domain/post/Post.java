@@ -1,5 +1,6 @@
 package tobyspring.community.domain.post;
 
+import io.jsonwebtoken.lang.Assert;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -33,10 +34,14 @@ public class Post extends EntityAbstract {
     @Enumerated(EnumType.STRING)
     private PostStatus status;
 
-    private Long likes;
+    private Long likes = 0L;
 
+    @ElementCollection
+    @CollectionTable(name = "post_tags", joinColumns = @JoinColumn(name = "post_id"))
     private List<Tag> tags;
 
+    @ElementCollection
+    @CollectionTable(name = "post_images", joinColumns = @JoinColumn(name = "post_id"))
     private List<String> imageUrl;
 
     private LocalDateTime createdAt;
@@ -81,11 +86,13 @@ public class Post extends EntityAbstract {
         modifiedAt = LocalDateTime.now();
     }
 
-    public void like(Long memberId) {
+    public void like() {
+        Assert.state(status == PostStatus.POSTED, "게시 중인 글만 좋아요할 수 있습니다.");
         likes = this.likes + 1;
     }
 
-    public void unlike(Long memberId) {
+    public void unlike() {
+        Assert.state(status == PostStatus.POSTED, "게시 중인 글만 좋아요할 수 있습니다.");
         likes = this.likes - 1;
     }
 
