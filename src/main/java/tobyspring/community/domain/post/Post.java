@@ -68,8 +68,8 @@ public class Post extends EntityAbstract {
     public void modify(ModifyPostRequest request) {
         requireNonNull(request, "요청 body가 null일 수 없습니다.");
 
-        title = request.titleValue().orElse(this.title);
-        content = request.contentValue().orElse(this.content);
+        title = request.titleValue().map(Post::validateTitle).orElse(this.title);
+        content = request.contentValue().map(Post::validateContent).orElse(this.content);
         category = request.categoryValue().orElse(this.category);
         request.tagsValue().ifPresent(list ->
                 tags = list.stream()
@@ -91,6 +91,22 @@ public class Post extends EntityAbstract {
 
     public void suspendPost() {
         status = PostStatus.SUSPENDED;
+    }
+
+    private static String validateTitle(String title) {
+        if(title.length() > 15) {
+            throw new IllegalArgumentException("제목은 15자리를 넘길 수 없습니다.");
+        }
+
+        return title;
+    }
+
+    private static String validateContent(String content) {
+        if(content.length() > 200) {
+            throw new IllegalArgumentException("본문은 200자리를 넘길 수 없습니다.");
+        }
+
+        return content;
     }
 
 }

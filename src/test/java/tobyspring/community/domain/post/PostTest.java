@@ -26,6 +26,29 @@ public class PostTest {
     }
 
     @Nested
+    @DisplayName("게시글 관련 별도 테스트")
+    class Etc {
+        Post post;
+
+        @BeforeEach
+        void setup() {
+            post = Post.post(PostFixture.getCreatePostRequest(1L));
+            Assertions.assertThat(post.getStatus()).isEqualTo(PostStatus.POSTED);
+        }
+
+        @Test
+        void 실패_길이_제한() {
+            Assertions.assertThatThrownBy(
+                    () -> post.modify(new ModifyPostRequest("a".repeat(16), null, null, null, null))
+            ).isInstanceOf(IllegalArgumentException.class);
+
+            Assertions.assertThatThrownBy(
+                    () -> post.modify(new ModifyPostRequest(null, "a".repeat(201), null, null, null))
+            ).isInstanceOf(IllegalArgumentException.class);
+        }
+    }
+
+    @Nested
     @DisplayName("게시글 생성")
     class CreatePost {
         @Test
