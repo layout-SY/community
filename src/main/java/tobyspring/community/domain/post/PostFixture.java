@@ -18,6 +18,20 @@ public class PostFixture {
     }
 
     public static CreatePostRequest getCreatePostRequest(Long memberId, List<String> tags) {
-       return new CreatePostRequest("테스트", memberId, "본문 내용입니다.", PostCategory.IT, tags, null);
+        ArrayList<String> imageUrls = new ArrayList<>();
+        imageUrls.add("https://www.google.com");
+
+       return new CreatePostRequest("테스트", memberId, "본문 내용입니다.", PostCategory.IT, tags, imageUrls);
+    }
+
+    public static ModifyPostRequest getModifyPostRequest(Long memberId) {
+        return getModifyPostRequest(memberId, getTags("jaja", "gogo", "reset"));
+    }
+
+    public static ModifyPostRequest getModifyPostRequest(Long memberId, List<String> tags) {
+        ArrayList<String> imageUrls = new ArrayList<>();
+        imageUrls.add("https://www.naver.com");
+
+        return new ModifyPostRequest("수정된 제목", "수정된 본문", PostCategory.COOK,  tags, imageUrls);
     }
 }

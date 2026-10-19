@@ -12,6 +12,7 @@ import tobyspring.community.domain.member.Member;
 import tobyspring.community.domain.member.MemberFixture;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class PostTest {
@@ -64,6 +65,94 @@ public class PostTest {
 
             Assertions.assertThatThrownBy(
                     () -> Post.post(new CreatePostRequest("제목", 1L, null, PostCategory.IT, tags, null))
+            ).isInstanceOf(NullPointerException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("게시글 수정")
+    class ModifyPost {
+
+        Post post;
+
+        @BeforeEach
+        void setup() {
+            post = Post.post(PostFixture.getCreatePostRequest(1L));
+            Assertions.assertThat(post.getStatus()).isEqualTo(PostStatus.POSTED);
+        }
+
+        @Test
+        void 성공() {
+            post.modify(PostFixture.getModifyPostRequest(1L));
+
+            Assertions.assertThat(post.getCreatedAt()).isNotNull();
+            Assertions.assertThat(post.getModifiedAt()).isNotNull();
+            Assertions.assertThat(post.getTitle()).isEqualTo("수정된 제목");
+            Assertions.assertThat(post.getTags()).contains(new Tag("jaja"), new Tag("gogo"), new Tag("reset"), new Tag("reset"));
+        }
+
+        @Test
+        void 성공_null_필드는_원본_값_유지() {
+            post.modify(new ModifyPostRequest(null, null, null, null, null));
+
+            Assertions.assertThat(post)
+                    .extracting(Post::getTitle, Post::getContent, Post::getCategory)
+                    .containsExactly("테스트", "본문 내용입니다.", PostCategory.IT);
+
+            Assertions.assertThat(post.getTags()).contains(new Tag("java"), new Tag("element"), new Tag("todo"));
+            Assertions.assertThat(post.getImageUrl()).contains("https://www.google.com");
+        }
+
+        @Test
+        void 성공_null_필드가_일부만_있을_경우_title_content_category() {
+            post.modify(new ModifyPostRequest(null, "content 필드 null 확인", PostCategory.VACATION, null, null));
+
+            Assertions.assertThat(post)
+                    .extracting(Post::getTitle, Post::getContent, Post::getCategory)
+                    .containsExactly("테스트", "content 필드 null 확인", PostCategory.VACATION);
+
+            Assertions.assertThat(post.getTags()).contains(new Tag("java"), new Tag("element"), new Tag("todo"));
+            Assertions.assertThat(post.getImageUrl()).contains("https://www.google.com");
+        }
+
+        @Test
+        void 성공_null_필드가_일부만_있을_경우_tags_imageUrls() {
+            ArrayList<String> imageUrls = new ArrayList<>();
+            imageUrls.add("https://www.naver.com");
+
+            post.modify(new ModifyPostRequest(null, null, PostCategory.VACATION, PostFixture.getTags("jojo", "juju"), imageUrls));
+
+            Assertions.assertThat(post)
+                    .extracting(Post::getTitle, Post::getContent, Post::getCategory)
+                    .containsExactly("테스트", "본문 내용입니다.", PostCategory.VACATION);
+
+            Assertions.assertThat(post.getTags()).contains(new Tag("jojo"), new Tag("juju"));
+            Assertions.assertThat(post.getImageUrl()).contains("https://www.naver.com");
+        }
+
+        @Test
+        void 실패_null이_포함된_list() {
+            ArrayList<String> imageUrls = new ArrayList<>();
+            imageUrls.add("https://www.naver.com");
+            imageUrls.add(null);
+            imageUrls.add("https://www.jij.com");
+
+            post.modify(PostFixture.getModifyPostRequest(1L, PostFixture.getTags("jiji", null, "jogjog")));
+
+            Assertions.assertThat(post.getTags()).hasSize(2);
+            Assertions.assertThat(post.getTags()).containsExactly(new Tag("jiji"), new Tag("jogjog"));
+
+            post.modify(new ModifyPostRequest(null, null, null, null, imageUrls));
+
+            Assertions.assertThat(post.getTags()).hasSize(2);
+            Assertions.assertThat(post.getImageUrl()).containsExactly("https://www.naver.com", "https://www.jij.com");
+
+        }
+
+        @Test
+        void 실패_요청_body_null() {
+            Assertions.assertThatThrownBy(
+                    () -> post.modify(null)
             ).isInstanceOf(NullPointerException.class);
         }
     }
