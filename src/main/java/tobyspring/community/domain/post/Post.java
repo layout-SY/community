@@ -66,7 +66,7 @@ public class Post extends EntityAbstract {
     }
 
     public void modify(ModifyPostRequest request) {
-        requireNonNull(request);
+        requireNonNull(request, "요청 body가 null일 수 없습니다.");
 
         title = request.titleValue().orElse(this.title);
         content = request.contentValue().orElse(this.content);
