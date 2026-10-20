@@ -13,15 +13,15 @@ public class PostFixture {
         return Arrays.asList(tag);
     }
 
-    public static CreatePostRequest getCreatePostRequest(Long memberId) {
-        return getCreatePostRequest(memberId, getTags());
+    public static CreatePostRequest getCreatePostRequest() {
+        return getCreatePostRequest(getTags());
     }
 
-    public static CreatePostRequest getCreatePostRequest(Long memberId, List<String> tags) {
+    public static CreatePostRequest getCreatePostRequest(List<String> tags) {
         ArrayList<String> imageUrls = new ArrayList<>();
         imageUrls.add("https://www.google.com");
 
-       return new CreatePostRequest("테스트", memberId, "본문 내용입니다.", PostCategory.IT, tags, imageUrls);
+       return new CreatePostRequest("테스트", "본문 내용입니다.", PostCategory.IT, tags, imageUrls);
     }
 
     public static ModifyPostRequest getModifyPostRequest(Long memberId) {

@@ -48,14 +48,14 @@ public class Post extends EntityAbstract {
 
     private LocalDateTime modifiedAt;
 
-    public static Post post(CreatePostRequest request) {
+    public static Post post(CreatePostRequest request, Long memberId) {
         Post post = new Post();
 
         requireNonNull(request, "요청이 null일 수 없습니다.");
 
         post.title = requireNonNull(request.title(), "제목은 필수 입력입니다. : " + request.title());
         post.content = requireNonNull(request.content(), "본문은 필수 입력입니다. : " + request.content());
-        post.memberId = requireNonNull(request.memberId());
+        post.memberId = requireNonNull(memberId);
         post.category = request.category() == null ? PostCategory.ETC : request.category();
         post.imageUrl = request.imageUrls();
         if (request.tags() != null && !request.tags().isEmpty()) {
@@ -96,7 +96,7 @@ public class Post extends EntityAbstract {
         likes = this.likes - 1;
     }
 
-    public void suspendPost() {
+    public void suspend() {
         status = PostStatus.SUSPENDED;
     }
 

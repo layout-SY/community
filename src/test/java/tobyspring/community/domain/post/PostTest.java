@@ -30,7 +30,7 @@ public class PostTest {
 
         @BeforeEach
         void setup() {
-            post = Post.post(PostFixture.getCreatePostRequest(1L));
+            post = Post.post(PostFixture.getCreatePostRequest(), 1L);
             Assertions.assertThat(post.getStatus()).isEqualTo(PostStatus.POSTED);
         }
 
@@ -51,7 +51,7 @@ public class PostTest {
     class CreatePost {
         @Test
         void 성공() {
-            Post post = Post.post(PostFixture.getCreatePostRequest(1L));
+            Post post = Post.post(PostFixture.getCreatePostRequest(), 1L);
 
             Assertions.assertThat(post.getStatus()).isEqualTo(PostStatus.POSTED);
             Assertions.assertThat(post.getCreatedAt()).isNotNull();
@@ -62,7 +62,7 @@ public class PostTest {
 
         @Test
         void 성공_category_미설정() {
-            Post post = Post.post(new CreatePostRequest("제목", 1L, "qwer", null, tags, null));
+            Post post = Post.post(new CreatePostRequest("제목", "qwer", null, tags, null), 1L);
 
             Assertions.assertThat(post.getStatus()).isEqualTo(PostStatus.POSTED);
             Assertions.assertThat(post.getCreatedAt()).isNotNull();
@@ -74,18 +74,18 @@ public class PostTest {
             List<String> tags = PostFixture.getTags("java", "js", null, "jjj");
 
             Assertions.assertThatThrownBy(
-                    () -> Post.post(PostFixture.getCreatePostRequest(1L, tags))
+                    () -> Post.post(PostFixture.getCreatePostRequest(tags), 1L)
             ).isInstanceOf(NullPointerException.class);
         }
 
         @Test
         void 실패_필수_파라미터_누락() {
             Assertions.assertThatThrownBy(
-                    () -> Post.post(new CreatePostRequest(null, 1L, "qwer", PostCategory.IT, tags, null))
+                    () -> Post.post(new CreatePostRequest(null, "qwer", PostCategory.IT, tags, null), 1L)
             ).isInstanceOf(NullPointerException.class);
 
             Assertions.assertThatThrownBy(
-                    () -> Post.post(new CreatePostRequest("제목", 1L, null, PostCategory.IT, tags, null))
+                    () -> Post.post(new CreatePostRequest("제목", null, PostCategory.IT, tags, null), 1L)
             ).isInstanceOf(NullPointerException.class);
         }
     }
@@ -98,7 +98,7 @@ public class PostTest {
 
         @BeforeEach
         void setup() {
-            post = Post.post(PostFixture.getCreatePostRequest(1L));
+            post = Post.post(PostFixture.getCreatePostRequest(), 1L);
             Assertions.assertThat(post.getStatus()).isEqualTo(PostStatus.POSTED);
         }
 
@@ -185,7 +185,7 @@ public class PostTest {
 
         @BeforeEach
         void setup() {
-            post = Post.post(PostFixture.getCreatePostRequest(1L));
+            post = Post.post(PostFixture.getCreatePostRequest(), 1L);
             Assertions.assertThat(post.getStatus()).isEqualTo(PostStatus.POSTED);
         }
 
@@ -203,7 +203,7 @@ public class PostTest {
 
         @BeforeEach
         void setup() {
-            post = Post.post(PostFixture.getCreatePostRequest(1L));
+            post = Post.post(PostFixture.getCreatePostRequest(), 1L);
             Assertions.assertThat(post.getStatus()).isEqualTo(PostStatus.POSTED);
         }
 
@@ -221,13 +221,13 @@ public class PostTest {
 
         @BeforeEach
         void setup() {
-            post = Post.post(PostFixture.getCreatePostRequest(1L));
+            post = Post.post(PostFixture.getCreatePostRequest(), 1L);
             Assertions.assertThat(post.getStatus()).isEqualTo(PostStatus.POSTED);
         }
 
         @Test
         void 성공() {
-            post.suspendPost();
+            post.suspend();
             Assertions.assertThat(post.getStatus()).isEqualTo(PostStatus.SUSPENDED);
         }
     }
