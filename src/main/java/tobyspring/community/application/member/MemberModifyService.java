@@ -1,14 +1,16 @@
-package tobyspring.community.application;
+package tobyspring.community.application.member;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 import tobyspring.community.adapter.security.PasswordEncode;
-import tobyspring.community.application.provided.MemberFinder;
-import tobyspring.community.application.provided.MemberRegister;
-import tobyspring.community.application.required.EmailSender;
-import tobyspring.community.application.required.MemberRepository;
+import tobyspring.community.application.member.exception.AlreadyStateException;
+import tobyspring.community.application.member.exception.DuplicateEmailException;
+import tobyspring.community.application.member.provided.MemberFinder;
+import tobyspring.community.application.member.provided.MemberRegister;
+import tobyspring.community.application.member.required.EmailSender;
+import tobyspring.community.application.member.required.MemberRepository;
 import tobyspring.community.domain.member.*;
 import tobyspring.community.domain.shared.Email;
 

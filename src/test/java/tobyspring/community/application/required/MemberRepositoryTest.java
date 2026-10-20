@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.dao.DataIntegrityViolationException;
+import tobyspring.community.application.member.required.MemberRepository;
 import tobyspring.community.domain.member.Member;
 import tobyspring.community.domain.member.MemberFixture;
 import tobyspring.community.domain.member.MemberStatus;

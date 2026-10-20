@@ -3,17 +3,14 @@ package tobyspring.community.adapter.webapi;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
-import tobyspring.community.adapter.security.AuthenticateException;
 import tobyspring.community.adapter.security.TokenExtractor;
 import tobyspring.community.adapter.security.TokenManager;
-import tobyspring.community.application.MemberAuth;
-import tobyspring.community.application.provided.MemberFinder;
-import tobyspring.community.application.provided.MemberRegister;
+import tobyspring.community.application.member.MemberAuth;
+import tobyspring.community.application.member.provided.MemberFinder;
+import tobyspring.community.application.member.provided.MemberRegister;
 import tobyspring.community.domain.member.*;
-import tobyspring.community.domain.shared.Email;
 
 @RestController
 @RequiredArgsConstructor

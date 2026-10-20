@@ -1,13 +1,13 @@
-package tobyspring.community.application;
+package tobyspring.community.application.member;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
-import tobyspring.community.adapter.security.AuthenticateException;
 import tobyspring.community.adapter.security.PasswordEncode;
 import tobyspring.community.adapter.security.TokenManager;
-import tobyspring.community.application.provided.MemberFinder;
-import tobyspring.community.application.provided.MemberLogin;
+import tobyspring.community.application.member.exception.DeactivateMemberException;
+import tobyspring.community.application.member.exception.NotFoundException;
+import tobyspring.community.application.member.provided.MemberFinder;
+import tobyspring.community.application.member.provided.MemberLogin;
 import tobyspring.community.domain.member.*;
 import tobyspring.community.domain.shared.Email;
 

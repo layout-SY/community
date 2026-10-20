@@ -7,8 +7,9 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import tobyspring.community.application.DuplicateEmailException;
-import tobyspring.community.application.required.MemberRepository;
+import tobyspring.community.application.member.exception.DuplicateEmailException;
+import tobyspring.community.application.member.provided.MemberRegister;
+import tobyspring.community.application.member.required.MemberRepository;
 import tobyspring.community.domain.member.*;
 
 @SpringBootTest

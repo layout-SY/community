@@ -1,4 +1,4 @@
-package tobyspring.community.application.required;
+package tobyspring.community.application.member.required;
 
 import org.springframework.data.repository.Repository;
 import tobyspring.community.domain.shared.Email;

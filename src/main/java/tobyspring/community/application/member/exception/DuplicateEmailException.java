@@ -1,4 +1,4 @@
-package tobyspring.community.application;
+package tobyspring.community.application.member.exception;
 
 public class DuplicateEmailException extends RuntimeException {
     public DuplicateEmailException(String email) {

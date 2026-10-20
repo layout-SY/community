@@ -2,7 +2,7 @@ package tobyspring.community.adapter.integration;
 
 import org.springframework.context.annotation.Fallback;
 import org.springframework.stereotype.Component;
-import tobyspring.community.application.required.EmailSender;
+import tobyspring.community.application.member.required.EmailSender;
 import tobyspring.community.domain.shared.Email;
 
 @Component

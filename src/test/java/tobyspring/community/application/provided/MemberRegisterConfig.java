@@ -2,7 +2,7 @@ package tobyspring.community.application.provided;
 
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
-import tobyspring.community.application.required.EmailSender;
+import tobyspring.community.application.member.required.EmailSender;
 import tobyspring.community.domain.member.MemberFixture;
 import tobyspring.community.adapter.security.PasswordEncode;
 

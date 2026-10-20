@@ -1,4 +1,4 @@
-package tobyspring.community.application.provided;
+package tobyspring.community.application.member.provided;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;

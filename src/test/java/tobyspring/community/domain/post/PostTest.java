@@ -5,15 +5,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.security.core.parameters.P;
 import tobyspring.community.adapter.security.PasswordEncode;
 import tobyspring.community.adapter.security.PasswordEncodeImpl;
-import tobyspring.community.application.InvalidParameterException;
 import tobyspring.community.domain.member.Member;
 import tobyspring.community.domain.member.MemberFixture;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class PostTest {

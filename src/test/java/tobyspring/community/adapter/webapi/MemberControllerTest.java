@@ -3,7 +3,6 @@ package tobyspring.community.adapter.webapi;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -19,11 +18,9 @@ import org.springframework.test.web.servlet.assertj.MockMvcTester;
 import org.springframework.test.web.servlet.assertj.MvcTestResult;
 import tobyspring.community.TestFixture;
 import tobyspring.community.adapter.security.TokenManager;
-import tobyspring.community.adapter.webapi.MemberDto;
-import tobyspring.community.application.required.MemberRepository;
+import tobyspring.community.application.member.required.MemberRepository;
 import tobyspring.community.domain.member.*;
 import tobyspring.community.domain.shared.Email;
-import tools.jackson.databind.ObjectMapper;
 
 import java.util.Map;
 

@@ -1,19 +1,16 @@
 package tobyspring.community.adapter;
 
-import org.h2.security.auth.AuthenticationException;
 import org.jspecify.annotations.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import tobyspring.community.adapter.security.AuthenticateException;
-import tobyspring.community.application.AlreadyStateException;
-import tobyspring.community.application.DeactivateMemberException;
-import tobyspring.community.application.DuplicateEmailException;
-import tobyspring.community.application.NotFoundException;
+import tobyspring.community.application.member.exception.AlreadyStateException;
+import tobyspring.community.application.member.exception.DeactivateMemberException;
+import tobyspring.community.application.member.exception.DuplicateEmailException;
+import tobyspring.community.application.member.exception.NotFoundException;
 
 import java.time.LocalDateTime;
 

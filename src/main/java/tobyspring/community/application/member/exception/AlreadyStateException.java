@@ -1,4 +1,4 @@
-package tobyspring.community.application;
+package tobyspring.community.application.member.exception;
 
 public class AlreadyStateException extends RuntimeException {
     public AlreadyStateException(String message) {

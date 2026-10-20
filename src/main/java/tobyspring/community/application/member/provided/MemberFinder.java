@@ -1,4 +1,4 @@
-package tobyspring.community.application.provided;
+package tobyspring.community.application.member.provided;
 
 import tobyspring.community.domain.member.Member;
 import tobyspring.community.domain.shared.Email;

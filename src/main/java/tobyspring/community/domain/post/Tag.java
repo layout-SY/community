@@ -1,7 +1,7 @@
 package tobyspring.community.domain.post;
 
 import jakarta.persistence.Embeddable;
-import tobyspring.community.application.InvalidParameterException;
+import tobyspring.community.application.member.exception.InvalidParameterException;
 
 import java.util.regex.Pattern;
 
