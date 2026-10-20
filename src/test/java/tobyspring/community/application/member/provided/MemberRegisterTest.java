@@ -1,4 +1,4 @@
-package tobyspring.community.application.provided;
+package tobyspring.community.application.member.provided;
 
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
@@ -8,13 +8,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import tobyspring.community.application.member.exception.DuplicateEmailException;
-import tobyspring.community.application.member.provided.MemberRegister;
 import tobyspring.community.application.member.required.MemberRepository;
 import tobyspring.community.domain.member.*;
 
 @SpringBootTest
 @Transactional
-@Import(MemberRegisterConfig.class)
+@Import(tobyspring.community.application.member.provided.MemberRegisterConfig.class)
 record MemberRegisterTest(MemberRegister memberRegister, MemberRepository memberRepository, EntityManager entityManager) {
 
     @Test

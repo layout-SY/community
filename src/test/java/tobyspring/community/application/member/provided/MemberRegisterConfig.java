@@ -1,4 +1,4 @@
-package tobyspring.community.application.provided;
+package tobyspring.community.application.member.provided;
 
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;

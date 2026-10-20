@@ -1,10 +1,10 @@
-package tobyspring.community.application.required;
+package tobyspring.community.application.member.required;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import tobyspring.community.application.provided.MemberRegisterConfig;
+import tobyspring.community.application.member.provided.MemberRegisterConfig;
 import tobyspring.community.adapter.security.PasswordEncode;
 
 @SpringBootTest

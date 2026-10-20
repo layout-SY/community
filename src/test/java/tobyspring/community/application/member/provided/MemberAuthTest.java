@@ -1,4 +1,4 @@
-package tobyspring.community.application.provided;
+package tobyspring.community.application.member.provided;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -8,8 +8,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import tobyspring.community.application.member.exception.DeactivateMemberException;
 import tobyspring.community.application.member.exception.NotFoundException;
-import tobyspring.community.application.member.provided.MemberLogin;
-import tobyspring.community.application.member.provided.MemberRegister;
 import tobyspring.community.application.member.required.MemberRepository;
 import tobyspring.community.domain.member.*;
 import tobyspring.community.domain.shared.Email;
