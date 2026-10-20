@@ -68,6 +68,14 @@ public class Member extends EntityAbstract {
         this.passwordHash = passwordEncoder.encode(newPassword);
     }
 
+    public boolean isDeactivate() {
+        return this.status.equals(MemberStatus.DEACTIVATED);
+    }
+
+    public boolean isActivate() {
+        return this.status.equals(MemberStatus.ACTIVE);
+    }
+
     public Member updateInfo(String nickname, MemberDetailRequest detailRequest) {
         Assert.state(this.status == MemberStatus.ACTIVE, "Member is not active");
 
