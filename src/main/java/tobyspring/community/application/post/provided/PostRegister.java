@@ -10,4 +10,6 @@ public interface PostRegister {
     Post modify(Long postId, Long memberId, ModifyPostRequest request);
 
     Post suspend(Long postId, Long memberId);
+
+    boolean delete(Long postId, Long memberId);
 }

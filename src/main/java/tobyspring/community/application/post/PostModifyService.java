@@ -62,4 +62,11 @@ public class PostModifyService implements PostRegister {
 
         return postById;
     }
+
+    @Override
+    public boolean delete(Long postId, Long memberId) {
+        Post postById = postFinder.findById(postId);
+
+        return true;
+    }
 }
