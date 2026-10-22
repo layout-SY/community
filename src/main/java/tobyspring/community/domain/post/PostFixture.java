@@ -24,11 +24,11 @@ public class PostFixture {
        return new CreatePostRequest("테스트", "본문 내용입니다.", PostCategory.IT, tags, imageUrls);
     }
 
-    public static ModifyPostRequest getModifyPostRequest(Long memberId) {
-        return getModifyPostRequest(memberId, getTags("jaja", "gogo", "reset"));
+    public static ModifyPostRequest getModifyPostRequest() {
+        return getModifyPostRequest(getTags("jaja", "gogo", "reset"));
     }
 
-    public static ModifyPostRequest getModifyPostRequest(Long memberId, List<String> tags) {
+    public static ModifyPostRequest getModifyPostRequest(List<String> tags) {
         ArrayList<String> imageUrls = new ArrayList<>();
         imageUrls.add("https://www.naver.com");
 

@@ -104,7 +104,7 @@ public class PostTest {
 
         @Test
         void 성공() {
-            post.modify(PostFixture.getModifyPostRequest(1L));
+            post.modify(PostFixture.getModifyPostRequest());
 
             Assertions.assertThat(post.getCreatedAt()).isNotNull();
             Assertions.assertThat(post.getModifiedAt()).isNotNull();
@@ -158,7 +158,7 @@ public class PostTest {
             imageUrls.add(null);
             imageUrls.add("https://www.jij.com");
 
-            post.modify(PostFixture.getModifyPostRequest(1L, PostFixture.getTags("jiji", null, "jogjog")));
+            post.modify(PostFixture.getModifyPostRequest(PostFixture.getTags("jiji", null, "jogjog")));
 
             Assertions.assertThat(post.getTags()).hasSize(2);
             Assertions.assertThat(post.getTags()).containsExactly(new Tag("jiji"), new Tag("jogjog"));
