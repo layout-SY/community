@@ -7,7 +7,7 @@ import tobyspring.community.domain.post.Post;
 public interface PostRegister {
     Post post(CreatePostRequest request, Long memberId);
 
-    void modify(ModifyPostRequest request);
+    Post modify(Long postId, Long memberId, ModifyPostRequest request);
 
-    void suspend();
+    Post suspend(Long postId, Long memberId);
 }
