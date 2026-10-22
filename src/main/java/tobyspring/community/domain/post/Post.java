@@ -81,7 +81,12 @@ public class Post extends EntityAbstract {
                         .map(Tag::new)
                         .collect(Collectors.toCollection(ArrayList::new)));
 
-        imageUrl = request.imageUrlsValue().orElse(this.imageUrl);
+        request.imageUrlsValue().ifPresent(
+                url -> {
+                    imageUrl.clear();
+                    imageUrl.addAll(url);
+                }
+        );
 
         modifiedAt = LocalDateTime.now();
     }
@@ -97,6 +102,7 @@ public class Post extends EntityAbstract {
     }
 
     public void suspend() {
+        Assert.state(status == PostStatus.POSTED, "게시 중인 글만 정지할 수 있습니다.");
         status = PostStatus.SUSPENDED;
     }
 
