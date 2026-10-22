@@ -44,12 +44,12 @@ class PostRegisterTest {
     class Posting {
         @Test
         void 성공() {
-            Post post = postRegister.post(PostFixture.getCreatePostRequest(), member.getId());
+            PostDetail postDetail = postRegister.post(PostFixture.getCreatePostRequest(), member.getId());
 
-            Post savedPost = postRepository.findById(post.getId()).orElseThrow();
+            Post savedPost = postRepository.findById(postDetail.post().getId()).orElseThrow();
 
             Assertions.assertThat(savedPost.getCreatedAt()).isNotNull();
-            Assertions.assertThat(savedPost.getMemberId()).isEqualTo(post.getMemberId());
+            Assertions.assertThat(savedPost.getMemberId()).isEqualTo(postDetail.post().getMemberId());
         }
 
         @Test
@@ -64,19 +64,19 @@ class PostRegisterTest {
     @DisplayName("게시글 수정")
     class ModifyPost {
 
-        Post post;
+        PostDetail postDetail;
 
         @BeforeEach
         void setup() {
-            post = postRegister.post(PostFixture.getCreatePostRequest(), member.getId());
+            postDetail = postRegister.post(PostFixture.getCreatePostRequest(), member.getId());
         }
 
         @Test
         void 성공() {
-            Post modifiedPost = postRegister.modify(post.getId(), post.getMemberId(), PostFixture.getModifyPostRequest());
+            PostDetail modifiedPost = postRegister.modify(postDetail.post().getId(), postDetail.post().getMemberId(), PostFixture.getModifyPostRequest());
 
-            Assertions.assertThat(modifiedPost.getModifiedAt()).isNotNull();
-            Assertions.assertThat(modifiedPost.getTags())
+            Assertions.assertThat(modifiedPost.post().getModifiedAt()).isNotNull();
+            Assertions.assertThat(modifiedPost.post().getTags())
                     .extracting("keyword")
                     .containsExactly("jaja", "gogo", "reset");
         }
@@ -86,20 +86,20 @@ class PostRegisterTest {
             ArrayList<String> imageUrls = new ArrayList<>();
             imageUrls.add("www.mimi.com");
 
-            String previousValue = post.getTitle();
+            String previousValue = postDetail.post().getTitle();
 
-            Post modifiedPost = postRegister.modify(post.getId(), member.getId(), new ModifyPostRequest(
+            PostDetail modifiedPost = postRegister.modify(postDetail.post().getId(), member.getId(), new ModifyPostRequest(
                     null, "테스트를 테스트합니다.", PostCategory.VACATION, PostFixture.getTags("cucu", "coco"), imageUrls
             ));
 
-            Assertions.assertThat(modifiedPost.getTitle()).isEqualTo(previousValue);
-            Assertions.assertThat(post)
+            Assertions.assertThat(modifiedPost.post().getTitle()).isEqualTo(previousValue);
+            Assertions.assertThat(postDetail.post())
                     .extracting(Post::getContent, Post::getCategory)
                     .containsExactly("테스트를 테스트합니다.", PostCategory.VACATION);
-            Assertions.assertThat(post.getTags())
+            Assertions.assertThat(postDetail.post().getTags())
                     .extracting("keyword")
                     .containsExactly("cucu", "coco");
-            Assertions.assertThat(post.getImageUrl())
+            Assertions.assertThat(postDetail.post().getImageUrl())
                     .containsExactly("www.mimi.com");
         }
 
@@ -108,20 +108,20 @@ class PostRegisterTest {
             ArrayList<String> imageUrls = new ArrayList<>();
             imageUrls.add("www.mimiqw.com");
 
-            String previousValue = post.getContent();
+            String previousValue = postDetail.post().getContent();
 
-            Post modifiedPost = postRegister.modify(post.getId(), member.getId(), new ModifyPostRequest(
+            PostDetail modifiedPost = postRegister.modify(postDetail.post().getId(), member.getId(), new ModifyPostRequest(
                     "테스트를 테스트", null, PostCategory.SOCIAL, PostFixture.getTags("zuzu", "zozo"), imageUrls
             ));
 
-            Assertions.assertThat(modifiedPost.getContent()).isEqualTo(previousValue);
-            Assertions.assertThat(post)
+            Assertions.assertThat(modifiedPost.post().getContent()).isEqualTo(previousValue);
+            Assertions.assertThat(postDetail.post())
                     .extracting(Post::getTitle, Post::getCategory)
                     .containsExactly("테스트를 테스트", PostCategory.SOCIAL);
-            Assertions.assertThat(post.getTags())
+            Assertions.assertThat(postDetail.post().getTags())
                     .extracting("keyword")
                     .containsExactly("zuzu", "zozo");
-            Assertions.assertThat(post.getImageUrl())
+            Assertions.assertThat(postDetail.post().getImageUrl())
                     .containsExactly("www.mimiqw.com");
         }
 
@@ -130,20 +130,20 @@ class PostRegisterTest {
             ArrayList<String> imageUrls = new ArrayList<>();
             imageUrls.add("www.mimiqw.com");
 
-            PostCategory previousValue = post.getCategory();
+            PostCategory previousValue = postDetail.post().getCategory();
 
-            Post modifiedPost = postRegister.modify(post.getId(), member.getId(), new ModifyPostRequest(
+            PostDetail modifiedPost = postRegister.modify(postDetail.post().getId(), member.getId(), new ModifyPostRequest(
                     "테스트를2 테스트", "테스트를 테스트 할까요?", null, PostFixture.getTags("zuzu", "zozo"), imageUrls
             ));
 
-            Assertions.assertThat(modifiedPost.getCategory()).isEqualTo(previousValue);
-            Assertions.assertThat(post)
+            Assertions.assertThat(modifiedPost.post().getCategory()).isEqualTo(previousValue);
+            Assertions.assertThat(postDetail.post())
                     .extracting(Post::getTitle, Post::getContent)
                     .containsExactly("테스트를2 테스트", "테스트를 테스트 할까요?");
-            Assertions.assertThat(post.getTags())
+            Assertions.assertThat(postDetail.post().getTags())
                     .extracting("keyword")
                     .containsExactly("zuzu", "zozo");
-            Assertions.assertThat(post.getImageUrl())
+            Assertions.assertThat(postDetail.post().getImageUrl())
                     .containsExactly("www.mimiqw.com");
         }
 
@@ -152,19 +152,19 @@ class PostRegisterTest {
             ArrayList<String> imageUrls = new ArrayList<>();
             imageUrls.add("www.mimiqw.com");
 
-            List<Tag> previousValue = new ArrayList<>(post.getTags());
+            List<Tag> previousValue = new ArrayList<>(postDetail.post().getTags());
 
-            Post modifiedPost = postRegister.modify(post.getId(), member.getId(), new ModifyPostRequest(
+            PostDetail modifiedPost = postRegister.modify(postDetail.post().getId(), member.getId(), new ModifyPostRequest(
                     "테스트를2 테스트", "null 테스트", PostCategory.FASHION, null, imageUrls
             ));
 
-            Assertions.assertThat(modifiedPost.getTags())
+            Assertions.assertThat(modifiedPost.post().getTags())
                     .containsExactlyElementsOf(previousValue);
-            Assertions.assertThat(post)
+            Assertions.assertThat(postDetail.post())
                     .extracting(Post::getTitle, Post::getContent, Post::getCategory
                     )
                     .containsExactly("테스트를2 테스트", "null 테스트", PostCategory.FASHION);
-            Assertions.assertThat(post.getImageUrl())
+            Assertions.assertThat(postDetail.post().getImageUrl())
                     .containsExactly("www.mimiqw.com");
         }
 
@@ -173,19 +173,19 @@ class PostRegisterTest {
             ArrayList<String> imageUrls = new ArrayList<>();
             imageUrls.add("www.mimiqw.com");
 
-            List<String> previousValue = new ArrayList<>(post.getImageUrl());
+            List<String> previousValue = new ArrayList<>(postDetail.post().getImageUrl());
 
-            Post modifiedPost = postRegister.modify(post.getId(), member.getId(), new ModifyPostRequest(
+            PostDetail modifiedPost = postRegister.modify(postDetail.post().getId(), member.getId(), new ModifyPostRequest(
                     "테스트를1 테스트", "null 테스트2", PostCategory.FASHION, PostFixture.getTags("zongzong", "zingzing"), null
             ));
 
-            Assertions.assertThat(modifiedPost.getImageUrl())
+            Assertions.assertThat(modifiedPost.post().getImageUrl())
                     .containsExactlyElementsOf(previousValue);
-            Assertions.assertThat(post)
+            Assertions.assertThat(postDetail.post())
                     .extracting(Post::getTitle, Post::getContent, Post::getCategory
                     )
                     .containsExactly("테스트를1 테스트", "null 테스트2", PostCategory.FASHION);
-            Assertions.assertThat(post.getTags())
+            Assertions.assertThat(postDetail.post().getTags())
                     .extracting("keyword")
                     .containsExactly("zongzong", "zingzing");
         }
@@ -203,7 +203,7 @@ class PostRegisterTest {
             registeredMember.activate();
 
             Assertions.assertThatThrownBy(
-                    () -> postRegister.modify(post.getId(), registeredMember.getId(), PostFixture.getModifyPostRequest())
+                    () -> postRegister.modify(postDetail.post().getId(), registeredMember.getId(), PostFixture.getModifyPostRequest())
             ).isInstanceOf(NotAuthorException.class);
         }
 
@@ -219,18 +219,18 @@ class PostRegisterTest {
     @Nested
     @DisplayName("게시글 정지")
     class SuspendedPost {
-        Post post;
+        PostDetail postDetail;
 
         @BeforeEach
         void setup() {
-            post = postRegister.post(PostFixture.getCreatePostRequest(), member.getId());
+            postDetail = postRegister.post(PostFixture.getCreatePostRequest(), member.getId());
         }
 
         @Test
         void 성공() {
-            post.suspend();
+            postDetail.post().suspend();
 
-            Post postById = postFinder.findById(post.getId());
+            Post postById = postFinder.findById(postDetail.post().getId());
 
             Assertions.assertThat(postById.getStatus()).isEqualTo(PostStatus.SUSPENDED);
         }

@@ -18,6 +18,7 @@ import org.springframework.test.web.servlet.assertj.MockMvcTester;
 import org.springframework.test.web.servlet.assertj.MvcTestResult;
 import tobyspring.community.TestFixture;
 import tobyspring.community.adapter.security.TokenManager;
+import tobyspring.community.adapter.webapi.member.MemberDto;
 import tobyspring.community.application.member.required.MemberRepository;
 import tobyspring.community.domain.member.*;
 import tobyspring.community.domain.shared.Email;

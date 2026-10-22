@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import tobyspring.community.application.member.exception.NotActivatedUserException;
 import tobyspring.community.application.member.provided.MemberFinder;
 import tobyspring.community.application.post.exception.NotAuthorException;
+import tobyspring.community.application.post.provided.PostDetail;
 import tobyspring.community.application.post.provided.PostFinder;
 import tobyspring.community.application.post.provided.PostRegister;
 import tobyspring.community.application.post.required.PostRepository;
@@ -21,7 +22,7 @@ public class PostModifyService implements PostRegister {
     private final PostRepository postRepository;
 
     @Override
-    public Post post(CreatePostRequest request, Long memberId) {
+    public PostDetail post(CreatePostRequest request, Long memberId) {
         Member byId = memberFinder.findById(memberId);
 
         if(!byId.isActivate()) throw new NotActivatedUserException();
@@ -30,11 +31,11 @@ public class PostModifyService implements PostRegister {
 
         postRepository.save(post);
 
-        return post;
+        return PostDetail.mapper(post, byId.getNickname());
     }
 
     @Override
-    public Post modify(Long postId, Long memberId, ModifyPostRequest request) {
+    public PostDetail modify(Long postId, Long memberId, ModifyPostRequest request) {
         Post postById = postFinder.findById(postId);
 
         Member memberById = memberFinder.findById(memberId);
@@ -46,11 +47,11 @@ public class PostModifyService implements PostRegister {
 
         postRepository.save(postById);
 
-        return postById;
+        return PostDetail.mapper(postById, memberById.getNickname());
     }
 
     @Override
-    public Post suspend(Long postId, Long memberId) {
+    public PostDetail suspend(Long postId, Long memberId) {
         Post postById = postFinder.findById(postId);
 
         Member memberById = memberFinder.findById(memberId);
@@ -60,7 +61,7 @@ public class PostModifyService implements PostRegister {
 
         postRepository.save(postById);
 
-        return postById;
+        return PostDetail.mapper(postById, memberById.getNickname());
     }
 
     @Override
