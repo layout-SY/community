@@ -198,7 +198,7 @@ class PostRegisterTest {
         }
 
         @Test
-        void 실패_400_작성자_외에_수정_요청() {
+        void 실패_403_작성자_외에_수정_요청() {
             Member registeredMember = memberRegister.register(MemberFixture.getRegisterRequest("qdgqdg@naver.com"));
             registeredMember.activate();
 
@@ -237,6 +237,35 @@ class PostRegisterTest {
 
         @Test
         void 실패_400_POSTED_외에_다른_상태() {
+        }
+    }
+
+    @Nested
+    @DisplayName("게시글 삭제")
+    class DeletingPost {
+        Post post;
+
+        @BeforeEach
+        void setup() {
+            post = postRegister.post(PostFixture.getCreatePostRequest(), member.getId());
+        }
+
+        @Test
+        void 성공() {
+            postRegister.delete(post.getId(), member.getId());
+
+            Assertions.assertThatThrownBy(
+                    () -> postFinder.findById(post.getId())
+            ).isInstanceOf(NotFoundException.class);
+        }
+
+        @Test
+        void 실패_403_작성자_외에_삭제_요청() {
+            Member registered = memberRegister.register(MemberFixture.getRegisterRequest("endfn@naver.com"));
+
+            Assertions.assertThatThrownBy(
+                    () -> postRegister.delete(post.getId(), registered.getId())
+            ).isInstanceOf(NotAuthorException.class);
         }
     }
 

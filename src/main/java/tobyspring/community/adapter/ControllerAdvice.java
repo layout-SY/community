@@ -7,10 +7,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import tobyspring.community.adapter.security.AuthenticateException;
-import tobyspring.community.application.member.exception.AlreadyStateException;
-import tobyspring.community.application.member.exception.DeactivateMemberException;
-import tobyspring.community.application.member.exception.DuplicateEmailException;
-import tobyspring.community.application.member.exception.NotFoundException;
+import tobyspring.community.application.member.exception.*;
+import tobyspring.community.application.post.exception.NotAuthorException;
 
 import java.time.LocalDateTime;
 
@@ -48,6 +46,16 @@ public class ControllerAdvice extends ResponseEntityExceptionHandler {
     @ExceptionHandler(value = {NullPointerException.class})
     protected ProblemDetail nullPointerException(NullPointerException ex) {
         return setProblemDetailWithRuntimeException(ex, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(value = {NotActivatedUserException.class})
+    protected ProblemDetail notActivatedUserException(NotActivatedUserException ex) {
+        return setProblemDetailWithRuntimeException(ex, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(value = {NotAuthorException.class})
+    protected ProblemDetail notAuthorException(NotAuthorException ex) {
+        return setProblemDetailWithRuntimeException(ex, HttpStatus.FORBIDDEN);
     }
 
     private static @NonNull ProblemDetail setProblemDetailWithRuntimeException(RuntimeException ex, HttpStatus httpStatus) {

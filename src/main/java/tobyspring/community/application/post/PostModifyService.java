@@ -3,6 +3,7 @@ package tobyspring.community.application.post;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import tobyspring.community.application.member.exception.NotActivatedUserException;
+import tobyspring.community.application.member.exception.NotFoundException;
 import tobyspring.community.application.member.provided.MemberFinder;
 import tobyspring.community.application.post.exception.NotAuthorException;
 import tobyspring.community.application.post.provided.PostFinder;
@@ -66,6 +67,10 @@ public class PostModifyService implements PostRegister {
     @Override
     public boolean delete(Long postId, Long memberId) {
         Post postById = postFinder.findById(postId);
+
+        if(!memberId.equals(postById.getMemberId())) throw new NotAuthorException("작성자만 수정할 수 있습니다.");
+
+        postRepository.delete(postById);
 
         return true;
     }
