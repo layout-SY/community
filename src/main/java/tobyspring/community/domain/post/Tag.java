@@ -6,10 +6,10 @@ import tobyspring.community.application.member.exception.InvalidParameterExcepti
 import java.util.regex.Pattern;
 
 @Embeddable
-record Tag(String keyword) {
+public record Tag(String keyword) {
     private static final Pattern TAG_PATTERN = Pattern.compile("^[가-힣a-zA-Z0-9]+$");
 
-    Tag {
+    public Tag {
         if(keyword == null) throw new NullPointerException("태그명엔 null이 들어갈 수 없습니다.");
         String trimmed = keyword.trim();
 
