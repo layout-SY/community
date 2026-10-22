@@ -1,10 +1,8 @@
-package tobyspring.community.adapter.webapi;
+package tobyspring.community.adapter.webapi.member;
 
-import lombok.NoArgsConstructor;
 import tobyspring.community.domain.member.Member;
 import tobyspring.community.domain.member.MemberDetail;
 import tobyspring.community.domain.member.MemberStatus;
-import tobyspring.community.domain.shared.Email;
 
 public record MemberDto(
         Long id,

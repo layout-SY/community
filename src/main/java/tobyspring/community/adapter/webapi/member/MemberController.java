@@ -1,4 +1,4 @@
-package tobyspring.community.adapter.webapi;
+package tobyspring.community.adapter.webapi.member;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
