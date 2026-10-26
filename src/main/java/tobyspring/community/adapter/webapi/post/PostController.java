@@ -20,10 +20,8 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 public class PostController {
-    private final PostFinder postFinder;
     private final PostRegister postRegister;
     private final TokenManager tokenManager;
-    private final MemberFinder memberFinder;
 
     @PostMapping("/post")
     public PostResponseDto CreatePost(

@@ -243,19 +243,19 @@ class PostRegisterTest {
     @Nested
     @DisplayName("게시글 삭제")
     class DeletingPost {
-        Post post;
+        PostDetail postDetail;
 
         @BeforeEach
         void setup() {
-            post = postRegister.post(PostFixture.getCreatePostRequest(), member.getId());
+            postDetail = postRegister.post(PostFixture.getCreatePostRequest(), member.getId());
         }
 
         @Test
         void 성공() {
-            postRegister.delete(post.getId(), member.getId());
+            postRegister.delete(postDetail.post().getId(), member.getId());
 
             Assertions.assertThatThrownBy(
-                    () -> postFinder.findById(post.getId())
+                    () -> postFinder.findById(postDetail.post().getId())
             ).isInstanceOf(NotFoundException.class);
         }
 
@@ -264,7 +264,7 @@ class PostRegisterTest {
             Member registered = memberRegister.register(MemberFixture.getRegisterRequest("endfn@naver.com"));
 
             Assertions.assertThatThrownBy(
-                    () -> postRegister.delete(post.getId(), registered.getId())
+                    () -> postRegister.delete(postDetail.post().getId(), registered.getId())
             ).isInstanceOf(NotAuthorException.class);
         }
     }
