@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import tobyspring.community.application.member.exception.InvalidParameterException;
 import tobyspring.community.domain.EntityAbstract;
 
 import java.lang.reflect.Array;
@@ -42,7 +43,7 @@ public class Post extends EntityAbstract {
 
     @ElementCollection
     @CollectionTable(name = "post_images", joinColumns = @JoinColumn(name = "post_id"))
-    private List<String> imageUrl = new ArrayList<>();
+    private List<String> imageUrls = new ArrayList<>();
 
     private LocalDateTime createdAt;
 
@@ -57,7 +58,7 @@ public class Post extends EntityAbstract {
         post.content = requireNonNull(request.content(), "content은 필수 입력입니다. : " + request.content());
         post.memberId = requireNonNull(memberId);
         post.category = request.category() == null ? PostCategory.ETC : request.category();
-        if(request.imageUrls() != null) post.imageUrl.addAll(request.imageUrls());
+        if(request.imageUrls() != null) post.imageUrls.addAll(request.imageUrls());
         if (request.tags() != null && !request.tags().isEmpty())
             request.tags().stream().map(Tag::new).forEach(post.tags::add);
 
@@ -70,6 +71,10 @@ public class Post extends EntityAbstract {
     public void modify(ModifyPostRequest request) {
         requireNonNull(request, "요청 body가 null일 수 없습니다.");
 
+        if (!request.hasAnyUpdate()) {
+            throw new InvalidParameterException("누락된 필드가 없어야 합니다.");
+        }
+
         title = request.titleValue().map(Post::validateTitle).orElse(this.title);
         content = request.contentValue().map(Post::validateContent).orElse(this.content);
         category = request.categoryValue().orElse(this.category);
@@ -80,8 +85,8 @@ public class Post extends EntityAbstract {
 
         request.imageUrlsValue().ifPresent(
                 url -> {
-                    imageUrl.clear();
-                    imageUrl.addAll(url);
+                    imageUrls.clear();
+                    imageUrls.addAll(url);
                 }
         );
 
@@ -118,5 +123,4 @@ public class Post extends EntityAbstract {
 
         return content;
     }
-
 }

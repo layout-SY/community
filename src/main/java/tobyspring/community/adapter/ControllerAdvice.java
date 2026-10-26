@@ -58,6 +58,11 @@ public class ControllerAdvice extends ResponseEntityExceptionHandler {
         return setProblemDetailWithRuntimeException(ex, HttpStatus.FORBIDDEN);
     }
 
+    @ExceptionHandler(value = {InvalidParameterException.class})
+    protected ProblemDetail invalidParameterException(InvalidParameterException ex) {
+        return setProblemDetailWithRuntimeException(ex, HttpStatus.BAD_REQUEST);
+    }
+
     private static @NonNull ProblemDetail setProblemDetailWithRuntimeException(RuntimeException ex, HttpStatus httpStatus) {
         String message = ex.getMessage();
 

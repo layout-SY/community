@@ -37,6 +37,7 @@ public record ModifyPostRequest(
         return Optional.ofNullable(imageUrls);
     }
 
+
     private static List<String> sanitize(List<String> value) {
         if (value == null) return null;
         return value.stream()
@@ -44,5 +45,11 @@ public record ModifyPostRequest(
                 .map(String::trim)
                 .filter(item -> !item.isEmpty())
                 .toList();
+    }
+
+
+    public boolean hasAnyUpdate() {
+        return title != null || content != null || category != null
+                || tags != null || imageUrls != null;
     }
 }
