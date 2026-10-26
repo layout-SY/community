@@ -63,6 +63,11 @@ public class ControllerAdvice extends ResponseEntityExceptionHandler {
         return setProblemDetailWithRuntimeException(ex, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(value = {IllegalArgumentException.class})
+    protected ProblemDetail illegalArgumentException(IllegalArgumentException ex) {
+        return setProblemDetailWithRuntimeException(ex, HttpStatus.BAD_REQUEST);
+    }
+
     private static @NonNull ProblemDetail setProblemDetailWithRuntimeException(RuntimeException ex, HttpStatus httpStatus) {
         String message = ex.getMessage();
 

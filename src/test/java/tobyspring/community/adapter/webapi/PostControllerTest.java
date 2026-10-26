@@ -12,10 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.*;
 import org.springframework.http.MediaType;
-import org.springframework.http.ProblemDetail;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 import org.springframework.test.web.servlet.assertj.MvcTestResult;
 import tobyspring.community.TestFixture;
@@ -25,6 +23,7 @@ import tobyspring.community.application.member.MemberAuth;
 import tobyspring.community.application.member.provided.MemberLogin;
 import tobyspring.community.application.member.provided.MemberRegister;
 import tobyspring.community.application.member.required.MemberRepository;
+import tobyspring.community.application.post.provided.PostFinder;
 import tobyspring.community.application.post.required.PostRepository;
 import tobyspring.community.domain.member.LoginResponseDto;
 import tobyspring.community.domain.member.Member;
@@ -41,7 +40,6 @@ import java.util.stream.Stream;
 @Import(TestFixture.class)
 public class PostControllerTest {
     private final MockMvcTester mvcTester;
-    private final PostRepository postRepository;
     private final TestFixture testFixture;
     private final MemberRegister memberRegister;
     private final MemberLogin memberLogin;
@@ -49,6 +47,7 @@ public class PostControllerTest {
     Member member;
     LoginResponseDto loginResponseDto;
     String ACCESS_TOKEN;
+    String INVALID_PATH_ID = "invalid-post-id";
 
     @BeforeEach
     void setUp() {
@@ -122,7 +121,7 @@ public class PostControllerTest {
 
         @Test
         void 실패_401_토큰_헤더_없음() {
-            testFixture.assertProblem(tokenValidator(bearer(null)), HttpStatus.UNAUTHORIZED, "Required header 'Authorization' is not present.");
+            testFixture.assertProblem(nonAuthenticationHeader(), HttpStatus.BAD_REQUEST, "Required header 'Authorization' is not present.");
         }
 
         @Test
@@ -160,16 +159,16 @@ public class PostControllerTest {
 
         @Test
         void 성공_파라미터_누락_시_기존_값_유지() {
-            PostResponseDto modified = modifyPostAndGetPostResponseDto(postResponseDto.postId(), new ModifyPostRequest("title double check", null, PostCategory.VACATION, PostFixture.getTags("djdjdj", "didi"), null));
+            PostResponseDto modified = modifyPostAndGetPostResponseDto(postResponseDto.postId(), new ModifyPostRequest("title check", null, PostCategory.VACATION, PostFixture.getTags("djdjdj", "didi"), null));
 
             Assertions.assertThat(modified)
                     .extracting(PostResponseDto::title, PostResponseDto::content, PostResponseDto::category)
-                    .containsExactly("title double check", "본문 내용입니다.", PostCategory.VACATION);
+                    .containsExactly("title check", "본문 내용입니다.", PostCategory.VACATION);
 
-            Assertions.assertThat(postResponseDto.tags())
+            Assertions.assertThat(modified.tags())
                     .containsExactly("djdjdj", "didi");
 
-            Assertions.assertThat(postResponseDto.imageUrls()).isEmpty();
+            Assertions.assertThat(postResponseDto.imageUrls()).isEqualTo(modified.imageUrls());
         }
 
         @Test
@@ -201,10 +200,7 @@ public class PostControllerTest {
 
         @Test
         void 실패_403_작성자_외의_수정_요청() {
-            Member anotherMember = memberRegister.register(MemberFixture.getRegisterRequest("qwesdf@naver.com"));
-            anotherMember.activate();
-
-            LoginResponseDto logined = memberLogin.login(anotherMember.getEmail(), "qwe123");
+            LoginResponseDto logined = anotherLogin();
 
             MvcTestResult exchange = requestForbiddenUserToModify(logined);
 
@@ -219,6 +215,114 @@ public class PostControllerTest {
                     .header(HttpHeaders.AUTHORIZATION, bearer(logined.token().accessToken()))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody)
+                    .exchange();
+        }
+    }
+
+    @Nested
+    @DisplayName("게시글 정지")
+    class SuspendPostApi {
+        PostResponseDto postResponseDto;
+
+        @BeforeEach
+        void setup() {
+            CreatePostRequest createPostRequest = PostFixture.getCreatePostRequest();
+
+            postResponseDto = createPostAndGetPostResponseDto(createPostRequest);
+
+            Assertions.assertThat(
+                    postResponseDto.postId()
+            ).isNotNull();
+        }
+
+        @Test
+        void 성공() {
+            PostResponseDto suspended = getSuspended();
+
+            Assertions.assertThat(suspended.status()).isEqualTo(PostStatus.SUSPENDED);
+        }
+
+        private PostResponseDto getSuspended() {
+            MvcTestResult exchange = mvcTester.post().uri("/post/" + postResponseDto.postId() + "/suspend")
+                    .header(HttpHeaders.AUTHORIZATION, bearer(ACCESS_TOKEN))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .exchange();
+
+            return testFixture.readBody(exchange, PostResponseDto.class);
+        }
+
+        @Test
+        void 실패_400_postId_누락() {
+            MvcTestResult exchange = invalidPathIdApi(HttpMethod.POST, "/post/" + INVALID_PATH_ID + "/suspend");
+
+            testFixture.assertProblem(exchange, HttpStatus.BAD_REQUEST, "Failed to convert 'id' with value: " + "'" + INVALID_PATH_ID + "'");
+        }
+    }
+
+    @Nested
+    @DisplayName("게시글 삭제")
+    class DeletePostApi {
+        PostResponseDto postResponseDto;
+
+        @BeforeEach
+        void setup() {
+            CreatePostRequest createPostRequest = PostFixture.getCreatePostRequest();
+
+            postResponseDto = createPostAndGetPostResponseDto(createPostRequest);
+
+            Assertions.assertThat(
+                    postResponseDto.postId()
+            ).isNotNull();
+        }
+
+        @Test
+        void 성공() {
+            MvcTestResult exchange = deletePostApi();
+
+            Assertions.assertThat(exchange).hasStatusOk();
+
+            checkPostNotFound(postResponseDto.postId());
+        }
+
+        @Test
+        void 실패_403_작성자_외의_삭제_요청() {
+            LoginResponseDto anotherLogin = anotherLogin();
+
+            MvcTestResult result = deletePostApiNotAuthor(anotherLogin.token().accessToken());
+
+            testFixture.assertProblem(result, HttpStatus.FORBIDDEN, "작성자만 삭제할 수 있습니다.");
+        }
+
+        @Test
+        void 실패_400_잘못된_post_id() {
+            MvcTestResult exchange = invalidPathIdApi(HttpMethod.DELETE, "/post/" + INVALID_PATH_ID);
+
+            testFixture.assertProblem(exchange, HttpStatus.BAD_REQUEST, "Failed to convert 'id' with value: " + "'" + INVALID_PATH_ID + "'");
+        }
+
+        private @NonNull MvcTestResult deletePostApi() {
+            return mvcTester.delete().uri("/post/" + postResponseDto.postId())
+                    .header(HttpHeaders.AUTHORIZATION, bearer(ACCESS_TOKEN))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .exchange();
+        }
+
+        private @NonNull MvcTestResult deletePostApiNotAuthor(String token) {
+            return mvcTester.delete().uri("/post/" + postResponseDto.postId())
+                    .header(HttpHeaders.AUTHORIZATION, bearer(token))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .exchange();
+        }
+
+        private void checkPostNotFound(Long postId) {
+            MvcTestResult postMvc = findPostApi(postId);
+
+            testFixture.assertProblem(postMvc, HttpStatus.NOT_FOUND, "없는 게시글입니다.");
+        }
+
+        private MvcTestResult findPostApi(Long postId) {
+            return mvcTester.get().uri("/post/" + postId)
+                    .contentType(MediaType.APPLICATION_JSON)
                     .exchange();
         }
     }
@@ -265,7 +369,30 @@ public class PostControllerTest {
         return createPostApi(createPostRequest, token);
     }
 
+    private MvcTestResult nonAuthenticationHeader() {
+        String requestBody = testFixture.toJson(PostFixture.getCreatePostRequest());
+
+        return mvcTester.post().uri("/post")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody)
+                .exchange();
+    }
+
     private static String bearer(String accessToken) {
         return "Bearer " + accessToken;
+    }
+
+    private LoginResponseDto anotherLogin() {
+        Member anotherMember = memberRegister.register(MemberFixture.getRegisterRequest("qwesdf@naver.com"));
+        anotherMember.activate();
+
+        return memberLogin.login(anotherMember.getEmail(), "qwe123");
+    }
+
+    private @NonNull MvcTestResult invalidPathIdApi(HttpMethod method, String url) {
+        return mvcTester.method(method).uri(url)
+                .header(HttpHeaders.AUTHORIZATION, bearer(ACCESS_TOKEN))
+                .contentType(MediaType.APPLICATION_JSON)
+                .exchange();
     }
 }
