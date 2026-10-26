@@ -43,40 +43,40 @@ public class PostController {
             @RequestHeader(value = HttpHeaders.AUTHORIZATION)
             String token,
 
-            @PathVariable Long postId,
+            @PathVariable Long id,
             @RequestBody ModifyPostRequest request
             ) {
         String extractedToken = TokenExtractor.extractToken(token);
         Long memberId = tokenManager.extractMemberIdFromToken(extractedToken);
 
-        PostDetail postDetail = postRegister.modify(postId, memberId, request);
+        PostDetail postDetail = postRegister.modify(id, memberId, request);
 
         return PostResponseDto.mapper(postDetail.post(), postDetail.authorNickname());
     }
 
     @PostMapping("/post/{id}/suspend")
     public PostResponseDto suspendPost(
-            @PathVariable Long postId,
+            @PathVariable Long id,
             @RequestHeader(value = HttpHeaders.AUTHORIZATION)
             String token
     ) {
         String extractedToken = TokenExtractor.extractToken(token);
         Long memberId = tokenManager.extractMemberIdFromToken(extractedToken);
 
-        PostDetail postDetail = postRegister.suspend(postId, memberId);
+        PostDetail postDetail = postRegister.suspend(id, memberId);
 
         return PostResponseDto.mapper(postDetail.post(), postDetail.authorNickname());
     }
 
     @DeleteMapping("/post/{id}")
     public boolean deletePost(
-            @PathVariable Long postId,
+            @PathVariable Long id,
             @RequestHeader(value = HttpHeaders.AUTHORIZATION)
             String token
     ) {
         String extractedToken = TokenExtractor.extractToken(token);
         Long memberId = tokenManager.extractMemberIdFromToken(extractedToken);
 
-        return postRegister.delete(postId, memberId);
+        return postRegister.delete(id, memberId);
     }
 }
