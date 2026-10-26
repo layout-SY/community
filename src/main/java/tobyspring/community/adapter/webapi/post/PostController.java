@@ -22,6 +22,7 @@ import java.util.List;
 public class PostController {
     private final PostRegister postRegister;
     private final TokenManager tokenManager;
+    private final PostFinder postFinder;
 
     @PostMapping("/post")
     public PostResponseDto CreatePost(
@@ -29,7 +30,7 @@ public class PostController {
             String token,
 
             @RequestBody CreatePostRequest request
-            ) {
+    ) {
         String extractedToken = TokenExtractor.extractToken(token);
         Long memberId = tokenManager.extractMemberIdFromToken(extractedToken);
 
@@ -45,7 +46,7 @@ public class PostController {
 
             @PathVariable Long id,
             @RequestBody ModifyPostRequest request
-            ) {
+    ) {
         String extractedToken = TokenExtractor.extractToken(token);
         Long memberId = tokenManager.extractMemberIdFromToken(extractedToken);
 
@@ -78,5 +79,14 @@ public class PostController {
         Long memberId = tokenManager.extractMemberIdFromToken(extractedToken);
 
         return postRegister.delete(id, memberId);
+    }
+
+    @GetMapping("/post/{id}")
+    public PostResponseDto getPost(
+            @PathVariable Long id
+    ) {
+        PostDetail postDetail = postFinder.findById(id);
+
+        return PostResponseDto.mapper(postDetail.post(), postDetail.authorNickname());
     }
 }

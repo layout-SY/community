@@ -230,9 +230,9 @@ class PostRegisterTest {
         void 성공() {
             postDetail.post().suspend();
 
-            Post postById = postFinder.findById(postDetail.post().getId());
+            PostDetail postById = postFinder.findById(postDetail.post().getId());
 
-            Assertions.assertThat(postById.getStatus()).isEqualTo(PostStatus.SUSPENDED);
+            Assertions.assertThat(postById.post().getStatus()).isEqualTo(PostStatus.SUSPENDED);
         }
 
         @Test

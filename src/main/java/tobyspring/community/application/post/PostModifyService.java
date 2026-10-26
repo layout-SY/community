@@ -37,41 +37,41 @@ public class PostModifyService implements PostRegister {
 
     @Override
     public PostDetail modify(Long postId, Long memberId, ModifyPostRequest request) {
-        Post postById = postFinder.findById(postId);
+        PostDetail postById = postFinder.findById(postId);
 
         Member memberById = memberFinder.findById(memberId);
         if(!memberById.isActivate()) throw new NotActivatedUserException();
 
-        if(!memberId.equals(postById.getMemberId())) throw new NotAuthorException("작성자만 수정할 수 있습니다.");
+        if(!memberId.equals(postById.post().getMemberId())) throw new NotAuthorException("작성자만 수정할 수 있습니다.");
 
-        postById.modify(request);
+        postById.post().modify(request);
 
-        postRepository.save(postById);
+        postRepository.save(postById.post());
 
-        return PostDetail.mapper(postById, memberById.getNickname());
+        return PostDetail.mapper(postById.post(), memberById.getNickname());
     }
 
     @Override
     public PostDetail suspend(Long postId, Long memberId) {
-        Post postById = postFinder.findById(postId);
+        PostDetail postById = postFinder.findById(postId);
 
         Member memberById = memberFinder.findById(memberId);
         if(!memberById.isActivate()) throw new NotActivatedUserException();
 
-        postById.suspend();
+        postById.post().suspend();
 
-        postRepository.save(postById);
+        postRepository.save(postById.post());
 
-        return PostDetail.mapper(postById, memberById.getNickname());
+        return PostDetail.mapper(postById.post(), memberById.getNickname());
     }
 
     @Override
     public boolean delete(Long postId, Long memberId) {
-        Post postById = postFinder.findById(postId);
+        PostDetail postById = postFinder.findById(postId);
 
-        if(!memberId.equals(postById.getMemberId())) throw new NotAuthorException("작성자만 수정할 수 있습니다.");
+        if(!memberId.equals(postById.post().getMemberId())) throw new NotAuthorException("작성자만 삭제할 수 있습니다.");
 
-        postRepository.delete(postById);
+        postRepository.delete(postById.post());
 
         return true;
     }
