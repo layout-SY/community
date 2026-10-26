@@ -20,10 +20,8 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 public class PostController {
-    private final PostFinder postFinder;
     private final PostRegister postRegister;
     private final TokenManager tokenManager;
-    private final MemberFinder memberFinder;
 
     @PostMapping("/post")
     public PostResponseDto CreatePost(
@@ -40,17 +38,6 @@ public class PostController {
         return PostResponseDto.mapper(postDetail.post(), postDetail.authorNickname());
     }
 
-    @GetMapping("/posts")
-    public void getPosts() {
-    }
-
-    @GetMapping("/post/{id}")
-    public void getPost(
-            @PathVariable Long id
-    ) {
-
-    }
-
     @PutMapping("/post/{id}")
     public PostResponseDto modifyPost(
             @RequestHeader(value = HttpHeaders.AUTHORIZATION)
@@ -65,5 +52,31 @@ public class PostController {
         PostDetail postDetail = postRegister.modify(postId, memberId, request);
 
         return PostResponseDto.mapper(postDetail.post(), postDetail.authorNickname());
+    }
+
+    @PostMapping("/post/{id}/suspend")
+    public PostResponseDto suspendPost(
+            @PathVariable Long postId,
+            @RequestHeader(value = HttpHeaders.AUTHORIZATION)
+            String token
+    ) {
+        String extractedToken = TokenExtractor.extractToken(token);
+        Long memberId = tokenManager.extractMemberIdFromToken(extractedToken);
+
+        PostDetail postDetail = postRegister.suspend(postId, memberId);
+
+        return PostResponseDto.mapper(postDetail.post(), postDetail.authorNickname());
+    }
+
+    @DeleteMapping("/post/{id}")
+    public boolean deletePost(
+            @PathVariable Long postId,
+            @RequestHeader(value = HttpHeaders.AUTHORIZATION)
+            String token
+    ) {
+        String extractedToken = TokenExtractor.extractToken(token);
+        Long memberId = tokenManager.extractMemberIdFromToken(extractedToken);
+
+        return postRegister.delete(postId, memberId);
     }
 }
