@@ -31,6 +31,7 @@ import tobyspring.community.domain.member.MemberFixture;
 import tobyspring.community.domain.post.*;
 
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.stream.Stream;
 
 @SpringBootTest
@@ -38,23 +39,27 @@ import java.util.stream.Stream;
 @AutoConfigureMockMvc
 @Transactional
 @Import(TestFixture.class)
-public class PostControllerTest {
+class PostControllerTest {
     private final MockMvcTester mvcTester;
     private final TestFixture testFixture;
     private final MemberRegister memberRegister;
     private final MemberLogin memberLogin;
 
-    Member member;
-    LoginResponseDto loginResponseDto;
-    String ACCESS_TOKEN;
-    String INVALID_PATH_ID = "invalid-post-id";
+    private Member member;
+    private String access_token;
+    private static final String INVALID_PATH_ID = "invalid-post-id";
+
+    private PostResponseDto postResponseDto;
 
     @BeforeEach
     void setUp() {
         member = memberRegister.register(MemberFixture.getRegisterRequest("qwer@naver.com"));
         member.activate();
-        loginResponseDto = memberLogin.login(member.getEmail(), "qwe123");
-        ACCESS_TOKEN = loginResponseDto.token().accessToken();
+        LoginResponseDto loginResponseDto = memberLogin.login(member.getEmail(), MemberFixture.DEFAULT_PASSWORD);
+        access_token = loginResponseDto.token().accessToken();
+
+        Assertions.assertThat(loginResponseDto.token().accessToken()).isNotNull();
+
     }
 
     @Nested
@@ -62,11 +67,9 @@ public class PostControllerTest {
     class Posting {
         @Test
         void 성공() {
-            Assertions.assertThat(loginResponseDto.token()).isNotNull();
-
             CreatePostRequest createPostRequest = PostFixture.getCreatePostRequest();
 
-            PostResponseDto postResponseDto = createPostAndGetPostResponseDto(createPostRequest);
+            PostResponseDto postResponseDto = createAndToResponse(createPostRequest);
 
             Assertions.assertThat(postResponseDto.createdAt()).isNotNull();
             Assertions.assertThat(postResponseDto.postId()).isNotNull();
@@ -77,7 +80,7 @@ public class PostControllerTest {
         void 성공_tags_누락_시_빈_목록() {
             CreatePostRequest createPostRequestTagsNull = new CreatePostRequest("title", "contentcontent", PostCategory.IT, null, PostFixture.getTags());
 
-            PostResponseDto postResponseDto = createPostAndGetPostResponseDto(createPostRequestTagsNull);
+            PostResponseDto postResponseDto = createAndToResponse(createPostRequestTagsNull);
 
             Assertions.assertThat(postResponseDto.tags()).isEmpty();
         }
@@ -86,7 +89,7 @@ public class PostControllerTest {
         void 성공_imageUrls_누락_시_빈_목록() {
             CreatePostRequest createPostRequestImageNull = new CreatePostRequest("titletitle", "contentcontent", PostCategory.IT, PostFixture.getTags(), null);
 
-            PostResponseDto postResponseDto = createPostAndGetPostResponseDto(createPostRequestImageNull);
+            PostResponseDto postResponseDto = createAndToResponse(createPostRequestImageNull);
 
             Assertions.assertThat(postResponseDto.imageUrls()).isEmpty();
         }
@@ -95,7 +98,7 @@ public class PostControllerTest {
         void 성공_category_누락_시_ETC() {
             CreatePostRequest createPostRequestCategoryNull = new CreatePostRequest("title", "contentcontent", null, PostFixture.getTags(), PostFixture.getTags());
 
-            PostResponseDto postResponseDto = createPostAndGetPostResponseDto(createPostRequestCategoryNull);
+            PostResponseDto postResponseDto = createAndToResponse(createPostRequestCategoryNull);
 
             Assertions.assertThat(postResponseDto.category()).isEqualTo(PostCategory.ETC);
         }
@@ -103,7 +106,7 @@ public class PostControllerTest {
         @ParameterizedTest(name = "{0} 누락")
         @MethodSource("missingRequiredFields")
         void 실패_400_필수_파라미터_누락(String field, CreatePostRequest request) {
-            testFixture.assertProblem(createPostApi(request, bearer(loginResponseDto.token().accessToken())),
+            testFixture.assertProblem(createPostApi(request, bearer(access_token)),
                     HttpStatus.BAD_REQUEST, field + "은 필수 입력입니다. : null");
         }
 
@@ -120,38 +123,44 @@ public class PostControllerTest {
         }
 
         @Test
-        void 실패_401_토큰_헤더_없음() {
+        void 실패_400_토큰_헤더_없음() {
             testFixture.assertProblem(nonAuthenticationHeader(), HttpStatus.BAD_REQUEST, "Required header 'Authorization' is not present.");
+        }
+
+        private MvcTestResult nonAuthenticationHeader() {
+            String requestBody = testFixture.toJson(PostFixture.getCreatePostRequest());
+
+            return mvcTester.post().uri("/post")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(requestBody)
+                    .exchange();
         }
 
         @Test
         void 실패_401_유효하지_않은_헤더() {
             testFixture.assertProblem(tokenValidator(bearer("")), HttpStatus.UNAUTHORIZED, "Authorization 헤더가 올바르지 않습니다");
         }
+
+        private @NonNull MvcTestResult tokenValidator(String token) {
+            CreatePostRequest createPostRequest = PostFixture.getCreatePostRequest();
+
+            return createPostApi(createPostRequest, token);
+        }
     }
 
     @Nested
     @DisplayName("게시글 수정")
     class ModifyPost {
-
-        PostResponseDto postResponseDto;
-
         @BeforeEach
         void setup() {
-            CreatePostRequest createPostRequest = PostFixture.getCreatePostRequest();
-
-            postResponseDto = createPostAndGetPostResponseDto(createPostRequest);
-
-            Assertions.assertThat(
-                    postResponseDto.postId()
-            ).isNotNull();
+            createAndToResponse(PostFixture.getCreatePostRequest());
         }
 
         @Test
         void 성공() {
             ModifyPostRequest modifyPostRequest = PostFixture.getModifyPostRequest();
 
-            PostResponseDto modifiedPost = modifyPostAndGetPostResponseDto(postResponseDto.postId(), modifyPostRequest);
+            PostResponseDto modifiedPost = modifyAndToResponse(postResponseDto.postId(), modifyPostRequest);
 
             Assertions.assertThat(modifiedPost.modifiedAt()).isNotNull();
             Assertions.assertThat(modifiedPost.category()).isEqualTo(PostCategory.COOK);
@@ -159,7 +168,7 @@ public class PostControllerTest {
 
         @Test
         void 성공_파라미터_누락_시_기존_값_유지() {
-            PostResponseDto modified = modifyPostAndGetPostResponseDto(postResponseDto.postId(), new ModifyPostRequest("title check", null, PostCategory.VACATION, PostFixture.getTags("djdjdj", "didi"), null));
+            PostResponseDto modified = modifyAndToResponse(postResponseDto.postId(), new ModifyPostRequest("title check", null, PostCategory.VACATION, PostFixture.getTags("djdjdj", "didi"), null));
 
             Assertions.assertThat(modified)
                     .extracting(PostResponseDto::title, PostResponseDto::content, PostResponseDto::category)
@@ -168,30 +177,21 @@ public class PostControllerTest {
             Assertions.assertThat(modified.tags())
                     .containsExactly("djdjdj", "didi");
 
-            Assertions.assertThat(postResponseDto.imageUrls()).isEqualTo(modified.imageUrls());
+            Assertions.assertThat(modified.imageUrls()).containsAll(postResponseDto.imageUrls());
         }
 
         @Test
         void 실패_400_필수_파라미터_없음() {
-            nonParameterApiTest();
-        }
-
-        private void nonParameterApiTest() {
-            MvcTestResult exchange = mvcTester.put().uri("/post/{postId}", postResponseDto.postId())
-                    .header(HttpHeaders.AUTHORIZATION, bearer(ACCESS_TOKEN))
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content("""
-                            {}
-                            """)
-                    .exchange();
+            MvcTestResult exchange = modifyPostApi(postResponseDto.postId(), Map.of(), bearer(access_token));
 
             testFixture.assertProblem(exchange, HttpStatus.BAD_REQUEST, "누락된 필드가 없어야 합니다.");
+
         }
 
         @Test
         void 실패_400_body_없음() {
             MvcTestResult exchange = mvcTester.put().uri("/post/{postId}", postResponseDto.postId())
-                    .header(HttpHeaders.AUTHORIZATION, bearer(ACCESS_TOKEN))
+                    .header(HttpHeaders.AUTHORIZATION, bearer(access_token))
                     .contentType(MediaType.APPLICATION_JSON)
                     .exchange();
 
@@ -200,60 +200,48 @@ public class PostControllerTest {
 
         @Test
         void 실패_403_작성자_외의_수정_요청() {
-            LoginResponseDto logined = anotherLogin();
+            LoginResponseDto logined = loginAsAnotherMember();
 
-            MvcTestResult exchange = requestForbiddenUserToModify(logined);
+            MvcTestResult exchange = modifyPostApi(postResponseDto.postId(), PostFixture.getModifyPostRequest(), bearer(logined.token().accessToken()));
 
             Assertions.assertThat(exchange).hasStatus(HttpStatus.FORBIDDEN);
         }
 
-        private @NonNull MvcTestResult requestForbiddenUserToModify(LoginResponseDto logined) {
-            ModifyPostRequest modifyPostRequest = PostFixture.getModifyPostRequest();
-            String requestBody = testFixture.toJson(modifyPostRequest);
+        private PostResponseDto modifyAndToResponse(Long postId, ModifyPostRequest modifyPostRequest) {
+            MvcTestResult exchange = modifyPostApi(postId, modifyPostRequest, bearer(access_token));
 
-            return mvcTester.put().uri("/post/" + postResponseDto.postId())
-                    .header(HttpHeaders.AUTHORIZATION, bearer(logined.token().accessToken()))
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(requestBody)
-                    .exchange();
+            Assertions.assertThat(exchange).hasStatusOk();
+
+            return testFixture.readBody(exchange, PostResponseDto.class);
         }
     }
 
     @Nested
     @DisplayName("게시글 정지")
     class SuspendPostApi {
-        PostResponseDto postResponseDto;
-
         @BeforeEach
         void setup() {
-            CreatePostRequest createPostRequest = PostFixture.getCreatePostRequest();
-
-            postResponseDto = createPostAndGetPostResponseDto(createPostRequest);
-
-            Assertions.assertThat(
-                    postResponseDto.postId()
-            ).isNotNull();
+            createAndToResponse(PostFixture.getCreatePostRequest());
         }
 
         @Test
         void 성공() {
-            PostResponseDto suspended = getSuspended();
+            PostResponseDto suspendedPost = suspendAndToResponse(postResponseDto.postId());
 
-            Assertions.assertThat(suspended.status()).isEqualTo(PostStatus.SUSPENDED);
+            Assertions.assertThat(suspendedPost.status()).isEqualTo(PostStatus.SUSPENDED);
         }
 
-        private PostResponseDto getSuspended() {
-            MvcTestResult exchange = mvcTester.post().uri("/post/" + postResponseDto.postId() + "/suspend")
-                    .header(HttpHeaders.AUTHORIZATION, bearer(ACCESS_TOKEN))
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .exchange();
+        private PostResponseDto suspendAndToResponse(Long postId) {
+            MvcTestResult exchange = suspendPostApi(postId, bearer(access_token));
+
+            Assertions.assertThat(exchange).hasStatusOk();
 
             return testFixture.readBody(exchange, PostResponseDto.class);
         }
 
         @Test
-        void 실패_400_postId_누락() {
-            MvcTestResult exchange = invalidPathIdApi(HttpMethod.POST, "/post/" + INVALID_PATH_ID + "/suspend");
+        void 실패_400_잘못된_post_id() {
+            MvcTestResult exchange = invalidPathIdApi(HttpMethod.POST, "/post/{id}/suspend");
 
             testFixture.assertProblem(exchange, HttpStatus.BAD_REQUEST, "Failed to convert 'id' with value: " + "'" + INVALID_PATH_ID + "'");
         }
@@ -262,22 +250,14 @@ public class PostControllerTest {
     @Nested
     @DisplayName("게시글 삭제")
     class DeletePostApi {
-        PostResponseDto postResponseDto;
-
         @BeforeEach
         void setup() {
-            CreatePostRequest createPostRequest = PostFixture.getCreatePostRequest();
-
-            postResponseDto = createPostAndGetPostResponseDto(createPostRequest);
-
-            Assertions.assertThat(
-                    postResponseDto.postId()
-            ).isNotNull();
+            createAndToResponse(PostFixture.getCreatePostRequest());
         }
 
         @Test
         void 성공() {
-            MvcTestResult exchange = deletePostApi();
+            MvcTestResult exchange = deletePostApi(postResponseDto.postId(), bearer(access_token));
 
             Assertions.assertThat(exchange).hasStatusOk();
 
@@ -286,32 +266,18 @@ public class PostControllerTest {
 
         @Test
         void 실패_403_작성자_외의_삭제_요청() {
-            LoginResponseDto anotherLogin = anotherLogin();
+            LoginResponseDto anotherLogin = loginAsAnotherMember();
 
-            MvcTestResult result = deletePostApiNotAuthor(anotherLogin.token().accessToken());
+            MvcTestResult result = deletePostApi(postResponseDto.postId(), bearer(anotherLogin.token().accessToken()));
 
             testFixture.assertProblem(result, HttpStatus.FORBIDDEN, "작성자만 삭제할 수 있습니다.");
         }
 
         @Test
         void 실패_400_잘못된_post_id() {
-            MvcTestResult exchange = invalidPathIdApi(HttpMethod.DELETE, "/post/" + INVALID_PATH_ID);
+            MvcTestResult exchange = invalidPathIdApi(HttpMethod.DELETE, "/post/{id}");
 
             testFixture.assertProblem(exchange, HttpStatus.BAD_REQUEST, "Failed to convert 'id' with value: " + "'" + INVALID_PATH_ID + "'");
-        }
-
-        private @NonNull MvcTestResult deletePostApi() {
-            return mvcTester.delete().uri("/post/" + postResponseDto.postId())
-                    .header(HttpHeaders.AUTHORIZATION, bearer(ACCESS_TOKEN))
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .exchange();
-        }
-
-        private @NonNull MvcTestResult deletePostApiNotAuthor(String token) {
-            return mvcTester.delete().uri("/post/" + postResponseDto.postId())
-                    .header(HttpHeaders.AUTHORIZATION, bearer(token))
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .exchange();
         }
 
         private void checkPostNotFound(Long postId) {
@@ -327,72 +293,61 @@ public class PostControllerTest {
         }
     }
 
-    private PostResponseDto createPostAndGetPostResponseDto(CreatePostRequest createPostRequest) {
-        MvcTestResult exchange = createPostApi(createPostRequest, bearer(ACCESS_TOKEN));
-
-        Assertions.assertThat(exchange).hasStatusOk();
-
-        return testFixture.readBody(exchange, PostResponseDto.class);
-    }
-
-    private MvcTestResult createPostApi(CreatePostRequest createPostRequest, String token) {
-        String requestBody = testFixture.toJson(createPostRequest);
-
+    protected MvcTestResult createPostApi(Object request, String token) {
         return mvcTester.post().uri("/post")
                 .header(HttpHeaders.AUTHORIZATION, token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(requestBody)
+                .content(testFixture.toJson(request))
                 .exchange();
     }
 
-    private PostResponseDto modifyPostAndGetPostResponseDto(Long postId, ModifyPostRequest modifyPostRequest) {
-        MvcTestResult exchange = modifyPostApi(postId, modifyPostRequest, bearer(ACCESS_TOKEN));
-
-        Assertions.assertThat(exchange).hasStatusOk();
-
-        return testFixture.readBody(exchange, PostResponseDto.class);
-    }
-
-    private MvcTestResult modifyPostApi(Long postId, ModifyPostRequest modifyPostRequest, String token) {
-        String requestBody = testFixture.toJson(modifyPostRequest);
-
+    protected MvcTestResult modifyPostApi(Long postId, Object modifyPostRequest, String token) {
         return mvcTester.put().uri("/post/" + postId)
                 .header(HttpHeaders.AUTHORIZATION, token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(requestBody)
+                .content(testFixture.toJson(modifyPostRequest))
                 .exchange();
     }
 
-    private @NonNull MvcTestResult tokenValidator(String token) {
-        CreatePostRequest createPostRequest = PostFixture.getCreatePostRequest();
-
-        return createPostApi(createPostRequest, token);
-    }
-
-    private MvcTestResult nonAuthenticationHeader() {
-        String requestBody = testFixture.toJson(PostFixture.getCreatePostRequest());
-
-        return mvcTester.post().uri("/post")
+    protected MvcTestResult suspendPostApi(Long postId, String token) {
+        return mvcTester.post().uri("/post/" + postId + "/suspend")
+                .header(HttpHeaders.AUTHORIZATION, token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(requestBody)
                 .exchange();
+    }
+
+    protected @NonNull MvcTestResult deletePostApi(Long postId, String token) {
+        return mvcTester.delete().uri("/post/" + postId)
+                .header(HttpHeaders.AUTHORIZATION, token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .exchange();
+    }
+
+    protected @NonNull MvcTestResult invalidPathIdApi(HttpMethod method, String urlTemplate) {
+        return mvcTester.method(method).uri(urlTemplate, INVALID_PATH_ID)
+                .header(HttpHeaders.AUTHORIZATION, bearer(access_token))
+                .contentType(MediaType.APPLICATION_JSON)
+                .exchange();
+    }
+
+    private LoginResponseDto loginAsAnotherMember() {
+        Member anotherMember = memberRegister.register(MemberFixture.getRegisterRequest("qwesdf@naver.com"));
+        anotherMember.activate();
+
+        return memberLogin.login(anotherMember.getEmail(), MemberFixture.DEFAULT_PASSWORD);
+    }
+
+    private PostResponseDto createAndToResponse(CreatePostRequest createPostRequest) {
+        MvcTestResult exchange = createPostApi(createPostRequest, bearer(access_token));
+
+        postResponseDto = testFixture.readBody(exchange, PostResponseDto.class);
+
+        Assertions.assertThat(postResponseDto.postId()).isNotNull();
+
+        return postResponseDto;
     }
 
     private static String bearer(String accessToken) {
         return "Bearer " + accessToken;
-    }
-
-    private LoginResponseDto anotherLogin() {
-        Member anotherMember = memberRegister.register(MemberFixture.getRegisterRequest("qwesdf@naver.com"));
-        anotherMember.activate();
-
-        return memberLogin.login(anotherMember.getEmail(), "qwe123");
-    }
-
-    private @NonNull MvcTestResult invalidPathIdApi(HttpMethod method, String url) {
-        return mvcTester.method(method).uri(url)
-                .header(HttpHeaders.AUTHORIZATION, bearer(ACCESS_TOKEN))
-                .contentType(MediaType.APPLICATION_JSON)
-                .exchange();
     }
 }

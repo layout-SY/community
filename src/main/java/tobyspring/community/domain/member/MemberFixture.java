@@ -6,12 +6,14 @@ import tobyspring.community.adapter.security.PasswordEncodeImpl;
 import tobyspring.community.domain.shared.Email;
 
 public class MemberFixture {
+    public static final String DEFAULT_PASSWORD = "qwe123";
+
     public static @NonNull RegisterMemberRequest getRegisterRequest() {
         return getRegisterRequest("qwer123@naver.com");
     }
 
     public static @NonNull RegisterMemberRequest getRegisterRequest(String email) {
-        return getRegisterRequest(email, "abcd", "qwe123");
+        return getRegisterRequest(email, "abcd", DEFAULT_PASSWORD);
     }
 
     public static @NonNull RegisterMemberRequest getRegisterRequest(String email, String nickname, String password) {
