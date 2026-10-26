@@ -38,7 +38,7 @@ public record PostResponseDto(
                 post.getTags().stream().map(Tag::keyword).collect(Collectors.toCollection(ArrayList::new)),
                 post.getImageUrl(),
                 post.getCreatedAt(),
-                post.getCreatedAt()
+                post.getModifiedAt()
         );
     }
 }

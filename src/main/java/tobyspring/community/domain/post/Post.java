@@ -38,11 +38,11 @@ public class Post extends EntityAbstract {
 
     @ElementCollection
     @CollectionTable(name = "post_tags", joinColumns = @JoinColumn(name = "post_id"))
-    private List<Tag> tags;
+    private List<Tag> tags = new ArrayList<>();
 
     @ElementCollection
     @CollectionTable(name = "post_images", joinColumns = @JoinColumn(name = "post_id"))
-    private List<String> imageUrl;
+    private List<String> imageUrl = new ArrayList<>();
 
     private LocalDateTime createdAt;
 
@@ -53,16 +53,13 @@ public class Post extends EntityAbstract {
 
         requireNonNull(request, "요청이 null일 수 없습니다.");
 
-        post.title = requireNonNull(request.title(), "제목은 필수 입력입니다. : " + request.title());
-        post.content = requireNonNull(request.content(), "본문은 필수 입력입니다. : " + request.content());
+        post.title = requireNonNull(request.title(), "title은 필수 입력입니다. : " + request.title());
+        post.content = requireNonNull(request.content(), "content은 필수 입력입니다. : " + request.content());
         post.memberId = requireNonNull(memberId);
         post.category = request.category() == null ? PostCategory.ETC : request.category();
-        post.imageUrl = request.imageUrls();
-        if (request.tags() != null && !request.tags().isEmpty()) {
-            post.tags = request.tags().stream()
-                    .map(Tag::new)
-                    .collect(Collectors.toCollection(ArrayList::new));
-        }
+        if(request.imageUrls() != null) post.imageUrl.addAll(request.imageUrls());
+        if (request.tags() != null && !request.tags().isEmpty())
+            request.tags().stream().map(Tag::new).forEach(post.tags::add);
 
         post.status = PostStatus.POSTED;
         post.createdAt = LocalDateTime.now();
