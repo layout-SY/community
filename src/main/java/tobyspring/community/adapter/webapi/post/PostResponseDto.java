@@ -36,7 +36,7 @@ public record PostResponseDto(
                 post.getStatus(),
                 post.getLikes(),
                 post.getTags().stream().map(Tag::keyword).collect(Collectors.toCollection(ArrayList::new)),
-                post.getImageUrl(),
+                post.getImageUrls(),
                 post.getCreatedAt(),
                 post.getModifiedAt()
         );

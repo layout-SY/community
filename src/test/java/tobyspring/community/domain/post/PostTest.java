@@ -121,7 +121,7 @@ public class PostTest {
                     .containsExactly("테스트", "본문 내용입니다.", PostCategory.IT);
 
             Assertions.assertThat(post.getTags()).contains(new Tag("java"), new Tag("element"), new Tag("todo"));
-            Assertions.assertThat(post.getImageUrl()).contains("https://www.google.com");
+            Assertions.assertThat(post.getImageUrls()).contains("https://www.google.com");
         }
 
         @Test
@@ -133,7 +133,7 @@ public class PostTest {
                     .containsExactly("테스트", "content 필드 null 확인", PostCategory.VACATION);
 
             Assertions.assertThat(post.getTags()).contains(new Tag("java"), new Tag("element"), new Tag("todo"));
-            Assertions.assertThat(post.getImageUrl()).contains("https://www.google.com");
+            Assertions.assertThat(post.getImageUrls()).contains("https://www.google.com");
         }
 
         @Test
@@ -148,7 +148,7 @@ public class PostTest {
                     .containsExactly("테스트", "본문 내용입니다.", PostCategory.VACATION);
 
             Assertions.assertThat(post.getTags()).contains(new Tag("jojo"), new Tag("juju"));
-            Assertions.assertThat(post.getImageUrl()).contains("https://www.naver.com");
+            Assertions.assertThat(post.getImageUrls()).contains("https://www.naver.com");
         }
 
         @Test
@@ -166,7 +166,7 @@ public class PostTest {
             post.modify(new ModifyPostRequest(null, null, null, null, imageUrls));
 
             Assertions.assertThat(post.getTags()).hasSize(2);
-            Assertions.assertThat(post.getImageUrl()).containsExactly("https://www.naver.com", "https://www.jij.com");
+            Assertions.assertThat(post.getImageUrls()).containsExactly("https://www.naver.com", "https://www.jij.com");
 
         }
 

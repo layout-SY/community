@@ -99,7 +99,7 @@ class PostRegisterTest {
             Assertions.assertThat(postDetail.post().getTags())
                     .extracting("keyword")
                     .containsExactly("cucu", "coco");
-            Assertions.assertThat(postDetail.post().getImageUrl())
+            Assertions.assertThat(postDetail.post().getImageUrls())
                     .containsExactly("www.mimi.com");
         }
 
@@ -121,7 +121,7 @@ class PostRegisterTest {
             Assertions.assertThat(postDetail.post().getTags())
                     .extracting("keyword")
                     .containsExactly("zuzu", "zozo");
-            Assertions.assertThat(postDetail.post().getImageUrl())
+            Assertions.assertThat(postDetail.post().getImageUrls())
                     .containsExactly("www.mimiqw.com");
         }
 
@@ -143,7 +143,7 @@ class PostRegisterTest {
             Assertions.assertThat(postDetail.post().getTags())
                     .extracting("keyword")
                     .containsExactly("zuzu", "zozo");
-            Assertions.assertThat(postDetail.post().getImageUrl())
+            Assertions.assertThat(postDetail.post().getImageUrls())
                     .containsExactly("www.mimiqw.com");
         }
 
@@ -164,7 +164,7 @@ class PostRegisterTest {
                     .extracting(Post::getTitle, Post::getContent, Post::getCategory
                     )
                     .containsExactly("테스트를2 테스트", "null 테스트", PostCategory.FASHION);
-            Assertions.assertThat(postDetail.post().getImageUrl())
+            Assertions.assertThat(postDetail.post().getImageUrls())
                     .containsExactly("www.mimiqw.com");
         }
 
@@ -173,13 +173,13 @@ class PostRegisterTest {
             ArrayList<String> imageUrls = new ArrayList<>();
             imageUrls.add("www.mimiqw.com");
 
-            List<String> previousValue = new ArrayList<>(postDetail.post().getImageUrl());
+            List<String> previousValue = new ArrayList<>(postDetail.post().getImageUrls());
 
             PostDetail modifiedPost = postRegister.modify(postDetail.post().getId(), member.getId(), new ModifyPostRequest(
                     "테스트를1 테스트", "null 테스트2", PostCategory.FASHION, PostFixture.getTags("zongzong", "zingzing"), null
             ));
 
-            Assertions.assertThat(modifiedPost.post().getImageUrl())
+            Assertions.assertThat(modifiedPost.post().getImageUrls())
                     .containsExactlyElementsOf(previousValue);
             Assertions.assertThat(postDetail.post())
                     .extracting(Post::getTitle, Post::getContent, Post::getCategory
