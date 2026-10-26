@@ -29,10 +29,7 @@ import tobyspring.community.application.post.required.PostRepository;
 import tobyspring.community.domain.member.LoginResponseDto;
 import tobyspring.community.domain.member.Member;
 import tobyspring.community.domain.member.MemberFixture;
-import tobyspring.community.domain.post.CreatePostRequest;
-import tobyspring.community.domain.post.Post;
-import tobyspring.community.domain.post.PostCategory;
-import tobyspring.community.domain.post.PostFixture;
+import tobyspring.community.domain.post.*;
 
 import java.util.ArrayList;
 import java.util.stream.Stream;
@@ -130,33 +127,84 @@ public class PostControllerTest {
         void 실패_401_유효하지_않은_헤더() {
             testFixture.assertProblem(tokenValidator(bearer("")), HttpStatus.UNAUTHORIZED, "Authorization 헤더가 올바르지 않습니다");
         }
+    }
 
-        private PostResponseDto createPostAndGetPostResponseDto(CreatePostRequest createPostRequest) {
-            MvcTestResult exchange = createPostApi(createPostRequest, bearer(loginResponseDto.token().accessToken()));
+    @Nested
+    @DisplayName("게시글 수정")
+    class ModifyPost {
 
-            Assertions.assertThat(exchange).hasStatusOk();
+        PostResponseDto postResponseDto;
 
-            return testFixture.readBody(exchange, PostResponseDto.class);
-        }
-
-        private @NonNull MvcTestResult tokenValidator(String token) {
+        @BeforeEach
+        void setup() {
             CreatePostRequest createPostRequest = PostFixture.getCreatePostRequest();
 
-            return createPostApi(createPostRequest, token);
+            postResponseDto = createPostAndGetPostResponseDto(createPostRequest);
+
+            Assertions.assertThat(
+                    postResponseDto.postId()
+            ).isNotNull();
         }
 
-        private MvcTestResult createPostApi(CreatePostRequest createPostRequest, String token) {
-            String requestBody = testFixture.toJson(createPostRequest);
+        @Test
+        void 성공() {
+            ModifyPostRequest modifyPostRequest = PostFixture.getModifyPostRequest();
 
-            return mvcTester.post().uri("/post")
-                    .header(HttpHeaders.AUTHORIZATION, token)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(requestBody)
-                    .exchange();
+            PostResponseDto modifiedPost = modifyPostAndGetPostResponseDto(modifyPostRequest);
+
+            Assertions.assertThat(modifiedPost.modifiedAt()).isNotNull();
+            Assertions.assertThat(modifiedPost.category()).isEqualTo(PostCategory.COOK);
         }
 
-        private static String bearer(String accessToken) {
-            return "Bearer " + accessToken;
+        @Test
+        void 성공_파라미터_누락_시_기존_값_유지() {
+
         }
+    }
+
+    private PostResponseDto createPostAndGetPostResponseDto(CreatePostRequest createPostRequest) {
+        MvcTestResult exchange = createPostApi(createPostRequest, bearer(loginResponseDto.token().accessToken()));
+
+        Assertions.assertThat(exchange).hasStatusOk();
+
+        return testFixture.readBody(exchange, PostResponseDto.class);
+    }
+
+    private PostResponseDto modifyPostAndGetPostResponseDto(ModifyPostRequest modifyPostRequest) {
+        MvcTestResult exchange = modifyPostApi(modifyPostRequest, bearer(loginResponseDto.token().accessToken()));
+
+        Assertions.assertThat(exchange).hasStatusOk();
+
+        return testFixture.readBody(exchange, PostResponseDto.class);
+    }
+
+    private @NonNull MvcTestResult tokenValidator(String token) {
+        CreatePostRequest createPostRequest = PostFixture.getCreatePostRequest();
+
+        return createPostApi(createPostRequest, token);
+    }
+
+    private MvcTestResult createPostApi(CreatePostRequest createPostRequest, String token) {
+        String requestBody = testFixture.toJson(createPostRequest);
+
+        return mvcTester.post().uri("/post")
+                .header(HttpHeaders.AUTHORIZATION, token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody)
+                .exchange();
+    }
+
+    private MvcTestResult modifyPostApi(ModifyPostRequest modifyPostRequest, String token) {
+        String requestBody = testFixture.toJson(modifyPostRequest);
+
+        return mvcTester.put().uri("/post")
+                .header(HttpHeaders.AUTHORIZATION, token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody)
+                .exchange();
+    }
+
+    private static String bearer(String accessToken) {
+        return "Bearer " + accessToken;
     }
 }
