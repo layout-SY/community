@@ -48,12 +48,14 @@ public class PostControllerTest {
 
     Member member;
     LoginResponseDto loginResponseDto;
+    String ACCESS_TOKEN;
 
     @BeforeEach
     void setUp() {
         member = memberRegister.register(MemberFixture.getRegisterRequest("qwer@naver.com"));
         member.activate();
         loginResponseDto = memberLogin.login(member.getEmail(), "qwe123");
+        ACCESS_TOKEN = loginResponseDto.token().accessToken();
     }
 
     @Nested
@@ -150,7 +152,7 @@ public class PostControllerTest {
         void 성공() {
             ModifyPostRequest modifyPostRequest = PostFixture.getModifyPostRequest();
 
-            PostResponseDto modifiedPost = modifyPostAndGetPostResponseDto(modifyPostRequest);
+            PostResponseDto modifiedPost = modifyPostAndGetPostResponseDto(postResponseDto.postId(), modifyPostRequest);
 
             Assertions.assertThat(modifiedPost.modifiedAt()).isNotNull();
             Assertions.assertThat(modifiedPost.category()).isEqualTo(PostCategory.COOK);
@@ -158,30 +160,75 @@ public class PostControllerTest {
 
         @Test
         void 성공_파라미터_누락_시_기존_값_유지() {
+            PostResponseDto modified = modifyPostAndGetPostResponseDto(postResponseDto.postId(), new ModifyPostRequest("title double check", null, PostCategory.VACATION, PostFixture.getTags("djdjdj", "didi"), null));
 
+            Assertions.assertThat(modified)
+                    .extracting(PostResponseDto::title, PostResponseDto::content, PostResponseDto::category)
+                    .containsExactly("title double check", "본문 내용입니다.", PostCategory.VACATION);
+
+            Assertions.assertThat(postResponseDto.tags())
+                    .containsExactly("djdjdj", "didi");
+
+            Assertions.assertThat(postResponseDto.imageUrls()).isEmpty();
+        }
+
+        @Test
+        void 실패_400_필수_파라미터_없음() {
+            nonParameterApiTest();
+        }
+
+        private void nonParameterApiTest() {
+            MvcTestResult exchange = mvcTester.put().uri("/post/{postId}", postResponseDto.postId())
+                    .header(HttpHeaders.AUTHORIZATION, bearer(ACCESS_TOKEN))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("""
+                            {}
+                            """)
+                    .exchange();
+
+            testFixture.assertProblem(exchange, HttpStatus.BAD_REQUEST, "누락된 필드가 없어야 합니다.");
+        }
+
+        @Test
+        void 실패_400_body_없음() {
+            MvcTestResult exchange = mvcTester.put().uri("/post/{postId}", postResponseDto.postId())
+                    .header(HttpHeaders.AUTHORIZATION, bearer(ACCESS_TOKEN))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .exchange();
+
+            Assertions.assertThat(exchange).hasStatus(HttpStatus.BAD_REQUEST);
+        }
+
+        @Test
+        void 실패_403_작성자_외의_수정_요청() {
+            Member anotherMember = memberRegister.register(MemberFixture.getRegisterRequest("qwesdf@naver.com"));
+            anotherMember.activate();
+
+            LoginResponseDto logined = memberLogin.login(anotherMember.getEmail(), "qwe123");
+
+            MvcTestResult exchange = requestForbiddenUserToModify(logined);
+
+            Assertions.assertThat(exchange).hasStatus(HttpStatus.FORBIDDEN);
+        }
+
+        private @NonNull MvcTestResult requestForbiddenUserToModify(LoginResponseDto logined) {
+            ModifyPostRequest modifyPostRequest = PostFixture.getModifyPostRequest();
+            String requestBody = testFixture.toJson(modifyPostRequest);
+
+            return mvcTester.put().uri("/post/" + postResponseDto.postId())
+                    .header(HttpHeaders.AUTHORIZATION, bearer(logined.token().accessToken()))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(requestBody)
+                    .exchange();
         }
     }
 
     private PostResponseDto createPostAndGetPostResponseDto(CreatePostRequest createPostRequest) {
-        MvcTestResult exchange = createPostApi(createPostRequest, bearer(loginResponseDto.token().accessToken()));
+        MvcTestResult exchange = createPostApi(createPostRequest, bearer(ACCESS_TOKEN));
 
         Assertions.assertThat(exchange).hasStatusOk();
 
         return testFixture.readBody(exchange, PostResponseDto.class);
-    }
-
-    private PostResponseDto modifyPostAndGetPostResponseDto(ModifyPostRequest modifyPostRequest) {
-        MvcTestResult exchange = modifyPostApi(modifyPostRequest, bearer(loginResponseDto.token().accessToken()));
-
-        Assertions.assertThat(exchange).hasStatusOk();
-
-        return testFixture.readBody(exchange, PostResponseDto.class);
-    }
-
-    private @NonNull MvcTestResult tokenValidator(String token) {
-        CreatePostRequest createPostRequest = PostFixture.getCreatePostRequest();
-
-        return createPostApi(createPostRequest, token);
     }
 
     private MvcTestResult createPostApi(CreatePostRequest createPostRequest, String token) {
@@ -194,14 +241,28 @@ public class PostControllerTest {
                 .exchange();
     }
 
-    private MvcTestResult modifyPostApi(ModifyPostRequest modifyPostRequest, String token) {
+    private PostResponseDto modifyPostAndGetPostResponseDto(Long postId, ModifyPostRequest modifyPostRequest) {
+        MvcTestResult exchange = modifyPostApi(postId, modifyPostRequest, bearer(ACCESS_TOKEN));
+
+        Assertions.assertThat(exchange).hasStatusOk();
+
+        return testFixture.readBody(exchange, PostResponseDto.class);
+    }
+
+    private MvcTestResult modifyPostApi(Long postId, ModifyPostRequest modifyPostRequest, String token) {
         String requestBody = testFixture.toJson(modifyPostRequest);
 
-        return mvcTester.put().uri("/post")
+        return mvcTester.put().uri("/post/" + postId)
                 .header(HttpHeaders.AUTHORIZATION, token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody)
                 .exchange();
+    }
+
+    private @NonNull MvcTestResult tokenValidator(String token) {
+        CreatePostRequest createPostRequest = PostFixture.getCreatePostRequest();
+
+        return createPostApi(createPostRequest, token);
     }
 
     private static String bearer(String accessToken) {
