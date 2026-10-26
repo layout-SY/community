@@ -3,7 +3,11 @@ package tobyspring.community.adapter.webapi;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.assertj.core.api.Assertions;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -31,6 +35,7 @@ import tobyspring.community.domain.post.PostCategory;
 import tobyspring.community.domain.post.PostFixture;
 
 import java.util.ArrayList;
+import java.util.stream.Stream;
 
 @SpringBootTest
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
@@ -40,12 +45,9 @@ import java.util.ArrayList;
 public class PostControllerTest {
     private final MockMvcTester mvcTester;
     private final PostRepository postRepository;
-    private final TokenManager tokenManager;
     private final TestFixture testFixture;
     private final MemberRegister memberRegister;
     private final MemberLogin memberLogin;
-
-    private String BEARER_PREFIX = "Bearer ";
 
     Member member;
     LoginResponseDto loginResponseDto;
@@ -66,15 +68,7 @@ public class PostControllerTest {
 
             CreatePostRequest createPostRequest = PostFixture.getCreatePostRequest();
 
-            String requestBody = testFixture.toJson(createPostRequest);
-
-            MvcTestResult exchange = mvcTester.post().uri("/post")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .header(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + loginResponseDto.token().accessToken())
-                    .content(requestBody)
-                    .exchange();
-
-            PostResponseDto postResponseDto = testFixture.readBody(exchange, PostResponseDto.class);
+            PostResponseDto postResponseDto = createPostAndGetPostResponseDto(createPostRequest);
 
             Assertions.assertThat(postResponseDto.createdAt()).isNotNull();
             Assertions.assertThat(postResponseDto.postId()).isNotNull();
@@ -82,119 +76,87 @@ public class PostControllerTest {
         }
 
         @Test
+        void 성공_tags_누락_시_빈_목록() {
+            CreatePostRequest createPostRequestTagsNull = new CreatePostRequest("title", "contentcontent", PostCategory.IT, null, PostFixture.getTags());
+
+            PostResponseDto postResponseDto = createPostAndGetPostResponseDto(createPostRequestTagsNull);
+
+            Assertions.assertThat(postResponseDto.tags()).isEmpty();
+        }
+
+        @Test
+        void 성공_imageUrls_누락_시_빈_목록() {
+            CreatePostRequest createPostRequestImageNull = new CreatePostRequest("titletitle", "contentcontent", PostCategory.IT, PostFixture.getTags(), null);
+
+            PostResponseDto postResponseDto = createPostAndGetPostResponseDto(createPostRequestImageNull);
+
+            Assertions.assertThat(postResponseDto.imageUrls()).isEmpty();
+        }
+
+        @Test
+        void 성공_category_누락_시_ETC() {
+            CreatePostRequest createPostRequestCategoryNull = new CreatePostRequest("title", "contentcontent", null, PostFixture.getTags(), PostFixture.getTags());
+
+            PostResponseDto postResponseDto = createPostAndGetPostResponseDto(createPostRequestCategoryNull);
+
+            Assertions.assertThat(postResponseDto.category()).isEqualTo(PostCategory.ETC);
+        }
+
+        @ParameterizedTest(name = "{0} 누락")
+        @MethodSource("missingRequiredFields")
+        void 실패_400_필수_파라미터_누락(String field, CreatePostRequest request) {
+            testFixture.assertProblem(createPostApi(request, bearer(loginResponseDto.token().accessToken())),
+                    HttpStatus.BAD_REQUEST, field + "은 필수 입력입니다. : null");
+        }
+
+        static Stream<Arguments> missingRequiredFields() {
+            return Stream.of(
+                    Arguments.of("title", new CreatePostRequest(null, "content", PostCategory.IT, null, null)),
+                    Arguments.of("content", new CreatePostRequest("title", null, PostCategory.IT, null, null))
+            );
+        }
+
+        @Test
         void 실패_401_유효한_토큰_아님() {
-            CreatePostRequest createPostRequest = PostFixture.getCreatePostRequest();
-
-            String requestBody = testFixture.toJson(createPostRequest);
-
-            MvcTestResult exchange = mvcTester.post().uri("/post")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .header(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + "invalid-token")
-                    .content(requestBody)
-                    .exchange();
-
-            ProblemDetail problemDetail = testFixture.readBody(exchange, ProblemDetail.class);
-
-            Assertions.assertThat(exchange).hasStatus(HttpStatus.UNAUTHORIZED);
-            Assertions.assertThat(problemDetail.getDetail()).isEqualTo("유효하지 않은 토큰입니다.");
+            testFixture.assertProblem(tokenValidator(bearer("invalid-token")), HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다.");
         }
 
         @Test
         void 실패_401_토큰_헤더_없음() {
-            CreatePostRequest createPostRequest = PostFixture.getCreatePostRequest();
-
-            String requestBody = testFixture.toJson(createPostRequest);
-
-            MvcTestResult exchange = mvcTester.post().uri("/post")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(requestBody)
-                    .exchange();
-
-            ProblemDetail problemDetail = testFixture.readBody(exchange, ProblemDetail.class);
-
-            Assertions.assertThat(exchange).hasStatus(HttpStatus.BAD_REQUEST);
-            Assertions.assertThat(problemDetail.getDetail()).isEqualTo("Required header 'Authorization' is not present.");
+            testFixture.assertProblem(tokenValidator(bearer(null)), HttpStatus.UNAUTHORIZED, "Required header 'Authorization' is not present.");
         }
 
         @Test
         void 실패_401_유효하지_않은_헤더() {
-            CreatePostRequest createPostRequest = PostFixture.getCreatePostRequest();
-
-            String requestBody = testFixture.toJson(createPostRequest);
-
-            MvcTestResult exchange = mvcTester.post().uri("/post")
-                    .header(HttpHeaders.AUTHORIZATION, BEARER_PREFIX)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(requestBody)
-                    .exchange();
-
-            ProblemDetail problemDetail = testFixture.readBody(exchange, ProblemDetail.class);
-
-            Assertions.assertThat(exchange).hasStatus(HttpStatus.UNAUTHORIZED);
-            Assertions.assertThat(problemDetail.getDetail()).isEqualTo("Authorization 헤더가 올바르지 않습니다");
+            testFixture.assertProblem(tokenValidator(bearer("")), HttpStatus.UNAUTHORIZED, "Authorization 헤더가 올바르지 않습니다");
         }
 
-        @Test
-        void 성공_400_요청_body_선택_파라미터_누락() {
-            ArrayList<String> list = new ArrayList<>();
-            list.add("java");
-
-            CreatePostRequest createPostRequestCategoryNull = new CreatePostRequest("title", "contentcontent", null, list, list);
-            CreatePostRequest createPostRequestImageNull = new CreatePostRequest("titletitle", "contentcontent", PostCategory.IT, list, null);
-            CreatePostRequest createPostRequestTagsNull = new CreatePostRequest("title", "contentcontent", PostCategory.IT, null, list);
-
-            commonCreatePostSuccess("category", createPostRequestCategoryNull);
-            commonCreatePostSuccess("tags", createPostRequestTagsNull);
-            commonCreatePostSuccess("imageUrls", createPostRequestImageNull);
-        }
-
-        @Test
-        void 실패_400_요청_body_필수_파라미터_누락() {
-            ArrayList<String> list = new ArrayList<>();
-            list.add("java");
-
-            CreatePostRequest createPostRequest2 = new CreatePostRequest("titletitle", null, PostCategory.IT, list, null);
-            CreatePostRequest createPostRequest4 = new CreatePostRequest(null, "contentcontent", null, list, list);
-
-            createPostRequestTest("title", createPostRequest4);
-            createPostRequestTest("content", createPostRequest2);
-        }
-
-        private void createPostRequestTest(String sign, CreatePostRequest createPostRequest) {
-            ProblemDetail problemDetail = commonCreatePostFail(createPostRequest);
-
-            Assertions.assertThat(problemDetail.getDetail()).isEqualTo(sign + "은 필수 입력입니다. : " + "null");
-        }
-
-        private void commonCreatePostSuccess(String sign, CreatePostRequest createPostRequest) {
-            String requestBody = testFixture.toJson(createPostRequest);
-
-            MvcTestResult exchange = mvcTester.post().uri("/post")
-                    .header(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + loginResponseDto.token().accessToken())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(requestBody)
-                    .exchange();
+        private PostResponseDto createPostAndGetPostResponseDto(CreatePostRequest createPostRequest) {
+            MvcTestResult exchange = createPostApi(createPostRequest, bearer(loginResponseDto.token().accessToken()));
 
             Assertions.assertThat(exchange).hasStatusOk();
-            PostResponseDto postResponseDto = testFixture.readBody(exchange, PostResponseDto.class);
 
-            if(sign.equals("category")) Assertions.assertThat(postResponseDto.category()).isEqualTo(PostCategory.ETC);
-            if(sign.equals("tags")) Assertions.assertThat(postResponseDto.tags()).isEmpty();
-            if(sign.equals("imageUrls")) Assertions.assertThat(postResponseDto.imageUrls()).isEmpty();
+            return testFixture.readBody(exchange, PostResponseDto.class);
         }
 
-        private ProblemDetail commonCreatePostFail(CreatePostRequest createPostRequest) {
+        private @NonNull MvcTestResult tokenValidator(String token) {
+            CreatePostRequest createPostRequest = PostFixture.getCreatePostRequest();
+
+            return createPostApi(createPostRequest, token);
+        }
+
+        private MvcTestResult createPostApi(CreatePostRequest createPostRequest, String token) {
             String requestBody = testFixture.toJson(createPostRequest);
 
-            MvcTestResult exchange = mvcTester.post().uri("/post")
-                    .header(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + loginResponseDto.token().accessToken())
+            return mvcTester.post().uri("/post")
+                    .header(HttpHeaders.AUTHORIZATION, token)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody)
                     .exchange();
+        }
 
-            Assertions.assertThat(exchange).hasStatus(HttpStatus.BAD_REQUEST);
-
-            return testFixture.readBody(exchange, ProblemDetail.class);
+        private static String bearer(String accessToken) {
+            return "Bearer " + accessToken;
         }
     }
 }
