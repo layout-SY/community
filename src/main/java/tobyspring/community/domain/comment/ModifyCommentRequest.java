@@ -7,6 +7,9 @@ public record ModifyCommentRequest(
         CommentStatus status
 ) {
 
+    public boolean hasAnyUpdate() {
+        return content != null || status != null;
+    }
     public Optional<String> contentValue() {
         return Optional.ofNullable(content);
     }
