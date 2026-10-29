@@ -79,8 +79,22 @@ public class Comment extends EntityAbstract {
         likes = this.likes - 1;
     }
 
+    public void postComment() {
+        Assert.state(status != CommentStatus.POSTED, "이미 게시 중인 댓글입니다.");
+        status = CommentStatus.POSTED;
+    }
+
     public void hide() {
         Assert.state(status == CommentStatus.POSTED, "게시 중인 댓글만 숨길 수 있습니다.");
         status = CommentStatus.HIDDEN;
+    }
+
+    public void suspend() {
+        Assert.state(status == CommentStatus.POSTED, "게시 중인 댓글만 정지할 수 있습니다.");
+        status = CommentStatus.SUSPENDED;
+    }
+
+    public boolean isPostedComment() {
+        return status.equals(CommentStatus.POSTED);
     }
 }
