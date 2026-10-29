@@ -19,7 +19,7 @@ public class PostQueryService implements PostFinder {
     @Override
     public PostDetail findById(Long postId) {
         Post post = postRepository.findById(postId).orElseThrow(
-                () -> new NotFoundException("없는 게시글입니다.")
+                () -> new NotFoundException("id에 해당하는 게시글을 찾을 수 없습니다 : " + postId)
         );
 
         Member memberById = memberFinder.findById(post.getMemberId());
