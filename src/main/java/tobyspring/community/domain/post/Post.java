@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import tobyspring.community.application.comment.NotPostedException;
 import tobyspring.community.application.member.exception.InvalidParameterException;
 import tobyspring.community.domain.EntityAbstract;
 
@@ -106,6 +107,10 @@ public class Post extends EntityAbstract {
     public void suspend() {
         Assert.state(status == PostStatus.POSTED, "게시 중인 글만 정지할 수 있습니다.");
         status = PostStatus.SUSPENDED;
+    }
+
+    public boolean isPosted() {
+        return !status.equals(PostStatus.POSTED);
     }
 
     private static String validateTitle(String title) {
