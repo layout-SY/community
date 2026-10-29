@@ -23,7 +23,7 @@ import static java.util.Objects.requireNonNull;
 @Getter
 public class Comment extends EntityAbstract {
 
-    private String content;
+    private CommentContent content;
 
     private Long postId;
 
@@ -45,7 +45,7 @@ public class Comment extends EntityAbstract {
 
         requireNonNull(createCommentRequest, "요청 body가 null입니다.");
 
-        comment.content = requireNonNull(createCommentRequest.content(), "댓글이 없습니다.");
+        comment.content = new CommentContent(createCommentRequest.content());
         comment.postId = requireNonNull(postId, "postId는 필수입니다.");
         comment.memberId = requireNonNull(memberId, "memberId는 필수입니다.");
         comment.parentCommentId = createCommentRequest.parentCommentId();
@@ -63,7 +63,7 @@ public class Comment extends EntityAbstract {
             throw new InvalidParameterException("누락된 필드가 없어야 합니다.");
         }
 
-        content = modifyCommentRequest.contentValue().orElse(this.content);
+        content = new CommentContent(modifyCommentRequest.contentValue().orElse(this.content.content()));
         status = modifyCommentRequest.statusValue().orElse(this.status);
 
         modifiedAt = LocalDateTime.now();
