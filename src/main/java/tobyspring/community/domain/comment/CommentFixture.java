@@ -3,6 +3,7 @@ package tobyspring.community.domain.comment;
 public class CommentFixture {
     public static final CommentStatus COMMON_COMMENT_STATUS = CommentStatus.HIDDEN;
     public static final String COMMENT_CONTENT = "댓글 내용입니다.";
+    public static final String MODIFY_COMMENT_CONTENT = "수정하고자 하는 댓글입니다.";
 
     public static CreateCommentRequest createCommentRequest(Long parentCommentId) {
         return createCommentRequest(parentCommentId, COMMENT_CONTENT);
@@ -13,7 +14,7 @@ public class CommentFixture {
     }
 
     public static ModifyCommentRequest modifyCommentRequest() {
-        return modifyCommentRequest("수정하고자 하는 댓글입니다.", COMMON_COMMENT_STATUS);
+        return modifyCommentRequest(MODIFY_COMMENT_CONTENT, COMMON_COMMENT_STATUS);
     }
 
 

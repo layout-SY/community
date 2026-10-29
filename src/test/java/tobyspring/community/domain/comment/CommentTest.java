@@ -28,11 +28,12 @@ public class CommentTest {
         void 성공_일반_댓글() {
             Comment parentComment = Comment.create(POST_ID, MEMBER_ID, CommentFixture.createCommentRequest(null));
 
-            Assertions.assertThat(parentComment.getContent()).isEqualTo(CommentFixture.COMMENT_CONTENT);
+            Assertions.assertThat(parentComment.getContent().content()).isEqualTo(CommentFixture.COMMENT_CONTENT);
             Assertions.assertThat(parentComment.getPostId()).isEqualTo(POST_ID);
             Assertions.assertThat(parentComment.getMemberId()).isEqualTo(MEMBER_ID);
             Assertions.assertThat(parentComment.getStatus()).isEqualTo(CommentStatus.POSTED);
             Assertions.assertThat(parentComment.getCreatedAt()).isNotNull();
+            Assertions.assertThat(parentComment.getModifiedAt()).isNull();
         }
 
         @Test
@@ -46,7 +47,7 @@ public class CommentTest {
         void 실패_요청_content_null() {
             Assertions.assertThatThrownBy(() -> Comment.create(POST_ID, MEMBER_ID, CommentFixture.createCommentRequest(null, null)))
                     .isInstanceOf(NullPointerException.class)
-                    .hasMessage("댓글이 없습니다.");
+                    .hasMessage("댓글이(가) 없습니다.");
         }
 
         @Test
@@ -61,6 +62,47 @@ public class CommentTest {
             Assertions.assertThatThrownBy(() -> Comment.create(POST_ID, null, CommentFixture.createCommentRequest(null)))
                     .isInstanceOf(NullPointerException.class)
                     .hasMessage("memberId는 필수입니다.");
+        }
+    }
+
+    @Nested
+    @DisplayName("댓글 수정")
+    class ModifyComment {
+        Comment comment;
+
+        @BeforeEach
+        void setUp() {
+            comment = Comment.create(POST_ID, MEMBER_ID, CommentFixture.createCommentRequest(null));
+        }
+
+        @Test
+        void 성공() {
+            comment.modify(CommentFixture.modifyCommentRequest());
+
+            Assertions.assertThat(comment.getPostId()).isEqualTo(POST_ID);
+            Assertions.assertThat(comment.getModifiedAt()).isNotNull();
+            Assertions.assertThat(comment.getContent().content()).isEqualTo(CommentFixture.MODIFY_COMMENT_CONTENT);
+            Assertions.assertThat(comment.getStatus()).isEqualTo(CommentStatus.HIDDEN);
+        }
+
+        @Test
+        void 성공_null_필드는_기존_유지_content() {
+            String previousContent = comment.getContent().content();
+
+            comment.modify(CommentFixture.modifyCommentRequest(null, CommentStatus.SUSPENDED));
+
+            Assertions.assertThat(comment.getContent().content()).isEqualTo(previousContent);
+            Assertions.assertThat(comment.getStatus()).isEqualTo(CommentStatus.SUSPENDED);
+        }
+
+        @Test
+        void 성공_null_필드는_기존_유지_status() {
+            CommentStatus previousStatus = comment.getStatus();
+
+            comment.modify(CommentFixture.modifyCommentRequest("수정됐어요", null));
+
+            Assertions.assertThat(comment.getStatus()).isEqualTo(previousStatus);
+            Assertions.assertThat(comment.getContent().content()).isEqualTo("수정됐어요");
         }
     }
 }
