@@ -86,7 +86,7 @@ public class CommentTest {
         }
 
         @Test
-        void 성공_null_필드는_기존_유지_content() {
+        void 성공_null_필드는_기존_값_유지_content() {
             String previousContent = comment.getContent().content();
 
             comment.modify(CommentFixture.modifyCommentRequest(null, CommentStatus.SUSPENDED));
@@ -96,13 +96,127 @@ public class CommentTest {
         }
 
         @Test
-        void 성공_null_필드는_기존_유지_status() {
+        void 성공_null_필드는_기존_값_유지_status() {
             CommentStatus previousStatus = comment.getStatus();
 
             comment.modify(CommentFixture.modifyCommentRequest("수정됐어요", null));
 
             Assertions.assertThat(comment.getStatus()).isEqualTo(previousStatus);
             Assertions.assertThat(comment.getContent().content()).isEqualTo("수정됐어요");
+        }
+
+        @Test
+        void 실패_요청_body_null() {
+            Assertions.assertThatThrownBy(
+                    () ->comment.modify(null))
+                    .isInstanceOf(NullPointerException.class)
+                    .hasMessage("요청 body가 null입니다.");
+        }
+    }
+
+    @Nested
+    @DisplayName("댓글 숨김")
+    class HideComment {
+        Comment comment;
+
+        @BeforeEach
+        void setup() {
+            comment = Comment.create(POST_ID, MEMBER_ID, CommentFixture.createCommentRequest(1L));
+        }
+
+        @Test
+        void 성공() {
+            comment.hide();
+
+            Assertions.assertThat(comment.getStatus()).isEqualTo(CommentStatus.HIDDEN);
+        }
+
+        @Test
+        void 실패_게시_되지_않은_댓글_숨김() {
+            comment.suspend();
+
+            Assertions.assertThatThrownBy(
+                    () -> comment.hide())
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessage("게시 중인 댓글만 숨길 수 있습니다.");
+        }
+
+        @Test
+        void 실패_이미_숨긴_댓글() {
+            comment.hide();
+
+            Assertions.assertThatThrownBy(
+                            () -> comment.hide())
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessage("게시 중인 댓글만 숨길 수 있습니다.");
+        }
+    }
+
+    @Nested
+    @DisplayName("댓글 게시")
+    class PostComment {
+        Comment comment;
+
+        @BeforeEach
+        void setup() {
+            comment = Comment.create(POST_ID, MEMBER_ID, CommentFixture.createCommentRequest(1L));
+        }
+
+        @Test
+        void 성공() {
+            comment.hide();
+            Assertions.assertThat(comment.getStatus()).isEqualTo(CommentStatus.HIDDEN);
+
+            comment.postComment();
+            Assertions.assertThat(comment.getStatus()).isEqualTo(CommentStatus.POSTED);
+
+            comment.suspend();
+        }
+
+        @Test
+        void 실패_이미_게시된_댓글() {
+            Assertions.assertThatThrownBy(
+                            () -> comment.postComment())
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessage("이미 게시 중인 댓글입니다.");
+        }
+    }
+
+    @Nested
+    @DisplayName("댓글 정지")
+    class SuspendedComment {
+        Comment comment;
+
+        @BeforeEach
+        void setup() {
+            comment = Comment.create(POST_ID, MEMBER_ID, CommentFixture.createCommentRequest(1L));
+        }
+
+        @Test
+        void 성공() {
+            comment.suspend();
+            Assertions.assertThat(comment.getStatus()).isEqualTo(CommentStatus.SUSPENDED);
+
+        }
+
+        @Test
+        void 실패_이미_정지된_댓글() {
+            comment.suspend();
+
+            Assertions.assertThatThrownBy(
+                            () -> comment.suspend())
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessage("게시 중인 댓글만 정지할 수 있습니다.");
+        }
+
+        @Test
+        void 실패_숨긴_댓글() {
+            comment.hide();
+
+            Assertions.assertThatThrownBy(
+                            () -> comment.suspend())
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessage("게시 중인 댓글만 정지할 수 있습니다.");
         }
     }
 }
