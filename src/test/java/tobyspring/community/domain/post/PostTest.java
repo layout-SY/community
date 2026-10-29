@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import tobyspring.community.adapter.security.PasswordEncode;
 import tobyspring.community.adapter.security.PasswordEncodeImpl;
+import tobyspring.community.application.member.exception.InvalidParameterException;
 import tobyspring.community.domain.member.Member;
 import tobyspring.community.domain.member.MemberFixture;
 
@@ -114,14 +115,10 @@ public class PostTest {
 
         @Test
         void 성공_null_필드는_원본_값_유지() {
-            post.modify(new ModifyPostRequest(null, null, null, null, null));
-
-            Assertions.assertThat(post)
-                    .extracting(Post::getTitle, Post::getContent, Post::getCategory)
-                    .containsExactly("테스트", "본문 내용입니다.", PostCategory.IT);
-
-            Assertions.assertThat(post.getTags()).contains(new Tag("java"), new Tag("element"), new Tag("todo"));
-            Assertions.assertThat(post.getImageUrls()).contains("https://www.google.com");
+            Assertions.assertThatThrownBy(
+                () -> post.modify(new ModifyPostRequest(null, null, null, null, null))
+            ).isInstanceOf(InvalidParameterException.class)
+                    .hasMessage("누락된 필드가 없어야 합니다.");
         }
 
         @Test

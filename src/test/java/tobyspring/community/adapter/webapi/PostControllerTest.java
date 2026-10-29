@@ -283,7 +283,7 @@ class PostControllerTest {
         private void checkPostNotFound(Long postId) {
             MvcTestResult postMvc = findPostApi(postId);
 
-            testFixture.assertProblem(postMvc, HttpStatus.NOT_FOUND, "없는 게시글입니다.");
+            testFixture.assertProblem(postMvc, HttpStatus.NOT_FOUND, "id에 해당하는 게시글을 찾을 수 없습니다 : " + postId);
         }
 
         private MvcTestResult findPostApi(Long postId) {
