@@ -3,10 +3,12 @@ package tobyspring.community.application.comment;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
+import tobyspring.community.application.comment.provided.CommentDetail;
 import tobyspring.community.application.comment.provided.CommentFinder;
 import tobyspring.community.application.comment.provided.CommentRegister;
 import tobyspring.community.application.comment.requried.CommentRepository;
 import tobyspring.community.application.member.exception.NotActivatedUserException;
+import tobyspring.community.application.member.exception.NotFoundException;
 import tobyspring.community.application.member.provided.MemberFinder;
 import tobyspring.community.application.post.exception.NotAuthorException;
 import tobyspring.community.application.post.provided.PostDetail;
@@ -19,7 +21,7 @@ import tobyspring.community.domain.post.ModifyPostRequest;
 import tobyspring.community.domain.post.Post;
 
 @Service
-@RequiredArgsConstructor()
+@RequiredArgsConstructor
 public class CommentModifyService implements CommentRegister {
     private final CommentRepository commentRepository;
     private final MemberFinder memberFinder;
@@ -27,22 +29,25 @@ public class CommentModifyService implements CommentRegister {
     private final CommentFinder commentFinder;
 
     @Override
-    public Comment create(Long postId, Long memberId, CreateCommentRequest createCommentRequest) {
-        Member memberById = memberFinder.findById(memberId);
-        if(memberById.isActivate()) throw new NotActivatedUserException();
+    public CommentDetail create(Long postId, Long memberId, CreateCommentRequest createCommentRequest) {
+        Member memberById = isActivateMemberValidation(memberId);
 
-        isPostedPostValidation(postId);
+        Post postById = isPostedPostValidation(postId);
+
+        if(createCommentRequest.parentCommentId() != null) checkParentComment(createCommentRequest);
 
         Comment comment = Comment.create(postId, memberId, createCommentRequest);
 
         commentRepository.save(comment);
 
-        return comment;
+        return CommentDetail.mapper(comment, memberById.getNickname(), postById.getTitle());
     }
 
     @Override
-    public Comment modify(Long postId, Long memberId, Long commentId, ModifyCommentRequest modifyPostRequest) {
-        isPostedPostValidation(postId);
+    public CommentDetail modify(Long postId, Long memberId, Long commentId, ModifyCommentRequest modifyPostRequest) {
+        Member memberById = isActivateMemberValidation(memberId);
+
+        Post postById = isPostedPostValidation(postId);
 
         Comment commentById = commentValidation(memberId, commentId);
 
@@ -50,12 +55,14 @@ public class CommentModifyService implements CommentRegister {
 
         commentRepository.save(commentById);
 
-        return commentById;
+        return CommentDetail.mapper(commentById, memberById.getNickname(), postById.getTitle());
     }
 
     @Override
-    public Comment postComment(Long postId, Long memberId, Long commentId) {
-        isPostedPostValidation(postId);
+    public CommentDetail postComment(Long postId, Long memberId, Long commentId) {
+        Member memberById = isActivateMemberValidation(memberId);
+
+        Post postById = isPostedPostValidation(postId);
 
         Comment commentById = commentValidation(memberId, commentId);
 
@@ -63,12 +70,14 @@ public class CommentModifyService implements CommentRegister {
 
         commentRepository.save(commentById);
 
-        return commentById;
+        return CommentDetail.mapper(commentById, memberById.getNickname(), postById.getTitle());
     }
 
     @Override
-    public Comment hide(Long postId, Long memberId, Long commentId) {
-        isPostedPostValidation(postId);
+    public CommentDetail hide(Long postId, Long memberId, Long commentId) {
+        Member memberById = isActivateMemberValidation(memberId);
+
+        Post postById = isPostedPostValidation(postId);
 
         Comment commentById = commentValidation(memberId, commentId);
 
@@ -76,12 +85,14 @@ public class CommentModifyService implements CommentRegister {
 
         commentRepository.save(commentById);
 
-        return commentById;
+        return CommentDetail.mapper(commentById, memberById.getNickname(), postById.getTitle());
     }
 
     @Override
-    public Comment suspend(Long postId, Long memberId, Long commentId) {
-        isPostedPostValidation(postId);
+    public CommentDetail suspend(Long postId, Long memberId, Long commentId) {
+        Member memberById = isActivateMemberValidation(memberId);
+
+        Post postById = isPostedPostValidation(postId);
 
         Comment commentById = commentValidation(memberId, commentId);
 
@@ -89,12 +100,14 @@ public class CommentModifyService implements CommentRegister {
 
         commentRepository.save(commentById);
 
-        return commentById;
+        return CommentDetail.mapper(commentById, memberById.getNickname(), postById.getTitle());
     }
 
-    private void isPostedPostValidation(Long postId) {
+    private Post isPostedPostValidation(Long postId) {
         Post postById = postFinder.findById(postId).post();
         if(postById.isPosted()) throw new NotPostedException("게시글");
+
+        return postById;
     }
 
     private @NonNull Comment commentValidation(Long memberId, Long commentId) {
@@ -103,5 +116,15 @@ public class CommentModifyService implements CommentRegister {
         if(!commentById.isPostedComment()) throw new NotPostedException("댓글");
         if(!commentById.getMemberId().equals(memberId)) throw new NotAuthorException("작성자만 수정할 수 있습니다.");
         return commentById;
+    }
+
+    private @NonNull Member isActivateMemberValidation(Long memberId) {
+        Member memberById = memberFinder.findById(memberId);
+        if(!memberById.isActivate()) throw new NotActivatedUserException();
+        return memberById;
+    }
+
+    private void checkParentComment(CreateCommentRequest createCommentRequest) {
+        commentFinder.getCommentById(createCommentRequest.parentCommentId());
     }
 }

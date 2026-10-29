@@ -6,13 +6,13 @@ import tobyspring.community.domain.comment.ModifyCommentRequest;
 import tobyspring.community.domain.post.ModifyPostRequest;
 
 public interface CommentRegister {
-    Comment create(Long postId, Long memberId, CreateCommentRequest createCommentRequest);
+    CommentDetail create(Long postId, Long memberId, CreateCommentRequest createCommentRequest);
 
-    Comment modify(Long postId, Long memberId, Long commentId, ModifyCommentRequest createCommentRequest);
+    CommentDetail modify(Long postId, Long memberId, Long commentId, ModifyCommentRequest createCommentRequest);
 
-    Comment postComment(Long postId, Long memberId, Long commentId);
+    CommentDetail postComment(Long postId, Long memberId, Long commentId);
 
-    Comment hide(Long postId, Long memberId, Long commentId);
+    CommentDetail hide(Long postId, Long memberId, Long commentId);
 
-    Comment suspend(Long postId, Long memberId, Long commentId);
+    CommentDetail suspend(Long postId, Long memberId, Long commentId);
 }
