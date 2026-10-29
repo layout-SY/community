@@ -1,5 +1,6 @@
 package tobyspring.community.application.comment.requried;
 
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
 import tobyspring.community.domain.comment.Comment;
 
@@ -7,11 +8,15 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CommentRepository extends Repository<Comment, Long> {
-    Comment save(Comment comment);
+    void save(Comment comment);
 
     Optional<Comment> findById(Long commentId);
 
-    Optional<List<Comment>> findComments();
+    List<Comment> findAll();
 
-    Optional<List<Comment>> findCommentsById(Long commentId);
+    List<Comment> findAllByPostId(Long postId);
+
+    List<Comment> findAllByParentCommentId(Long parentCommentId);
+
+    List<Comment> findAllByPostIdAndParentCommentIdIsNull(Long postId);
 }
