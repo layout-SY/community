@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CommentFinder {
-    Comment getCommentById(Long commentId);
+    CommentDetail getCommentById(Long commentId);
 
-    List<Comment> getComments();
+    List<CommentDetail> getComments();
 
-    List<Comment> getChildCommentsById(Long commentId);
+    List<CommentDetail> getChildCommentsById(Long commentId);
 }
