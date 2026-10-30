@@ -85,12 +85,10 @@ public class Comment extends EntityAbstract {
     }
 
     public void hide() {
-        Assert.state(status == CommentStatus.POSTED, "게시 중인 댓글만 숨길 수 있습니다.");
         status = CommentStatus.HIDDEN;
     }
 
     public void suspend() {
-        Assert.state(status == CommentStatus.POSTED, "게시 중인 댓글만 정지할 수 있습니다.");
         status = CommentStatus.SUSPENDED;
     }
 
