@@ -11,4 +11,8 @@ public interface CommentFinder {
     List<CommentDetail> getComments();
 
     List<CommentDetail> getChildCommentsById(Long commentId);
+
+    List<CommentDetail> getChildCommentsByPostId(Long postId);
+
+    List<CommentDetail> getCommentsByPostId(Long postId);
 }

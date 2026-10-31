@@ -14,9 +14,11 @@ public interface CommentRepository extends Repository<Comment, Long> {
 
     List<Comment> findAll();
 
+    List<Comment> findAllByPostIdAndParentCommentIdIsNotNull(Long postId);
+
     List<Comment> findAllByPostId(Long postId);
 
     List<Comment> findAllByParentCommentId(Long parentCommentId);
 
-    List<Comment> findAllByPostIdAndParentCommentIdIsNull(Long postId);
+    void deleteById(Long commentId);
 }
