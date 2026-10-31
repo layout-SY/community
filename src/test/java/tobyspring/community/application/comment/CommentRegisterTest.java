@@ -176,8 +176,6 @@ public class CommentRegisterTest {
         void 성공_정지() {
             commentRegister.changeStatus(post.post().getId(), member.getId(), commentDetail.comment().getId(), CommentStatus.SUSPENDED);
 
-            commentDetail.comment().suspend();
-
             assertThat(commentDetail.comment().getStatus()).isEqualTo(CommentStatus.SUSPENDED);
         }
 

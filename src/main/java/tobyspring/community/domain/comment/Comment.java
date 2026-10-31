@@ -63,6 +63,10 @@ public class Comment extends EntityAbstract {
             throw new InvalidParameterException("누락된 필드가 없어야 합니다.");
         }
 
+        if(status.equals(CommentStatus.SUSPENDED)) {
+            throw new IllegalArgumentException("정지되어 수정할 수 없습니다.");
+        }
+
         content = new CommentContent(modifyCommentRequest.contentValue().orElse(this.content.content()));
         status = modifyCommentRequest.statusValue().orElse(this.status);
 
@@ -85,10 +89,12 @@ public class Comment extends EntityAbstract {
     }
 
     public void hide() {
+        Assert.state(status != CommentStatus.HIDDEN, "이미 숨긴 댓글입니다.");
         status = CommentStatus.HIDDEN;
     }
 
     public void suspend() {
+        Assert.state(status != CommentStatus.SUSPENDED, "이미 정지된 댓글입니다.");
         status = CommentStatus.SUSPENDED;
     }
 
