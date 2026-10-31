@@ -10,6 +10,11 @@ import tobyspring.community.application.post.required.PostRepository;
 import tobyspring.community.domain.member.Member;
 import tobyspring.community.domain.post.Post;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class PostQueryService implements PostFinder {
@@ -30,5 +35,16 @@ public class PostQueryService implements PostFinder {
     @Override
     public PostDetail findByMemberId(Long memberId) {
         return null;
+    }
+
+    @Override
+    public Map<Long, String> getTitleByPostIds(Collection<Long> postIds) {
+        if (postIds.isEmpty()) return Map.of();
+
+        List<Post> allByIdsIn = postRepository.findAllByIdIn(postIds);
+
+        return allByIdsIn.stream().collect(
+                Collectors.toMap(Post::getId, Post::getTitle)
+        );
     }
 }
