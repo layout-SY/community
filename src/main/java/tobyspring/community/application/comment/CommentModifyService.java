@@ -148,8 +148,7 @@ public class CommentModifyService implements CommentRegister {
     private @NonNull Comment commentValidation(Long postId, Long memberId, Long commentId) {
         Comment commentById = commentFinder.getCommentById(commentId).comment();
 
-        List<Comment> allByPostId = commentRepository.findAllByPostId(postId);
-        if (!allByPostId.stream().map(Comment::getId).toList().contains(commentId))
+        if (!commentById.getPostId().equals(postId))
             throw new NotFoundException("게시글에 해당하는 댓글을 찾을 수 없습니다.");
 
         if(!commentById.getMemberId().equals(memberId)) throw new NotAuthorException("작성자가 아닙니다.");
