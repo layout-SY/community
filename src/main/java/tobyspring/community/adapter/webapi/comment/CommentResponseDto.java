@@ -7,6 +7,7 @@ import tobyspring.community.domain.comment.CommentStatus;
 import java.time.LocalDateTime;
 
 public record CommentResponseDto(
+        Long id,
         String content,
         String postTitle,
         String authorNickname,
@@ -19,6 +20,7 @@ public record CommentResponseDto(
 
     public static CommentResponseDto mapper(CommentDetail commentDetail) {
         return new CommentResponseDto(
+                commentDetail.comment().getId(),
                 commentDetail.comment().getContent().content(),
                 commentDetail.postTitle(),
                 commentDetail.authorNickname(),
