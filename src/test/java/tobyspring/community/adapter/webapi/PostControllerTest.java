@@ -59,7 +59,6 @@ class PostControllerTest {
         access_token = loginResponseDto.token().accessToken();
 
         Assertions.assertThat(loginResponseDto.token().accessToken()).isNotNull();
-
     }
 
     @Nested
