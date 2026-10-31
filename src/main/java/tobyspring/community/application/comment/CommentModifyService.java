@@ -14,6 +14,7 @@ import tobyspring.community.application.post.exception.NotAuthorException;
 import tobyspring.community.application.post.provided.PostDetail;
 import tobyspring.community.application.post.provided.PostFinder;
 import tobyspring.community.domain.comment.Comment;
+import tobyspring.community.domain.comment.CommentStatus;
 import tobyspring.community.domain.comment.CreateCommentRequest;
 import tobyspring.community.domain.comment.ModifyCommentRequest;
 import tobyspring.community.domain.member.Member;
@@ -61,14 +62,18 @@ public class CommentModifyService implements CommentRegister {
     }
 
     @Override
-    public CommentDetail postComment(Long postId, Long memberId, Long commentId) {
+    public CommentDetail changeStatus(Long postId, Long memberId, Long commentId, CommentStatus status) {
         Member memberById = isActivateMemberValidation(memberId);
 
         Post postById = isPostedPostValidation(postId);
 
         Comment commentById = commentValidation(postId, memberId, commentId);
 
-        commentById.postComment();
+        switch (status) {
+            case HIDDEN: commentById.hide(); break;
+            case SUSPENDED: commentById.suspend(); break;
+            case POSTED: commentById.postComment(); break;
+        }
 
         commentRepository.save(commentById);
 
@@ -76,34 +81,62 @@ public class CommentModifyService implements CommentRegister {
     }
 
     @Override
-    public CommentDetail hide(Long postId, Long memberId, Long commentId) {
+    public boolean delete(Long postId, Long memberId, Long commentId) {
         Member memberById = isActivateMemberValidation(memberId);
 
         Post postById = isPostedPostValidation(postId);
 
         Comment commentById = commentValidation(postId, memberId, commentId);
 
-        commentById.hide();
+        commentRepository.deleteById(commentById.getId());
 
-        commentRepository.save(commentById);
-
-        return CommentDetail.mapper(commentById, memberById.getNickname(), postById.getTitle());
+        return true;
     }
 
-    @Override
-    public CommentDetail suspend(Long postId, Long memberId, Long commentId) {
-        Member memberById = isActivateMemberValidation(memberId);
-
-        Post postById = isPostedPostValidation(postId);
-
-        Comment commentById = commentValidation(postId, memberId, commentId);
-
-        commentById.suspend();
-
-        commentRepository.save(commentById);
-
-        return CommentDetail.mapper(commentById, memberById.getNickname(), postById.getTitle());
-    }
+//    @Override
+//    public CommentDetail postComment(Long postId, Long memberId, Long commentId) {
+//        Member memberById = isActivateMemberValidation(memberId);
+//
+//        Post postById = isPostedPostValidation(postId);
+//
+//        Comment commentById = commentValidation(postId, memberId, commentId);
+//
+//        commentById.postComment();
+//
+//        commentRepository.save(commentById);
+//
+//        return CommentDetail.mapper(commentById, memberById.getNickname(), postById.getTitle());
+//    }
+//
+//    @Override
+//    public CommentDetail hide(Long postId, Long memberId, Long commentId) {
+//        Member memberById = isActivateMemberValidation(memberId);
+//
+//        Post postById = isPostedPostValidation(postId);
+//
+//        Comment commentById = commentValidation(postId, memberId, commentId);
+//
+//        commentById.hide();
+//
+//        commentRepository.save(commentById);
+//
+//        return CommentDetail.mapper(commentById, memberById.getNickname(), postById.getTitle());
+//    }
+//
+//    @Override
+//    public CommentDetail suspend(Long postId, Long memberId, Long commentId) {
+//        Member memberById = isActivateMemberValidation(memberId);
+//
+//        Post postById = isPostedPostValidation(postId);
+//
+//        Comment commentById = commentValidation(postId, memberId, commentId);
+//
+//        commentById.suspend();
+//
+//        commentRepository.save(commentById);
+//
+//        return CommentDetail.mapper(commentById, memberById.getNickname(), postById.getTitle());
+//    }
 
     private Post isPostedPostValidation(Long postId) {
         Post postById = postFinder.findById(postId).post();
@@ -119,7 +152,7 @@ public class CommentModifyService implements CommentRegister {
         if (!allByPostId.stream().map(Comment::getId).toList().contains(commentId))
             throw new NotFoundException("게시글에 해당하는 댓글을 찾을 수 없습니다.");
 
-        if(!commentById.getMemberId().equals(memberId)) throw new NotAuthorException("작성자만 수정할 수 있습니다.");
+        if(!commentById.getMemberId().equals(memberId)) throw new NotAuthorException("작성자가 아닙니다.");
 
         return commentById;
     }

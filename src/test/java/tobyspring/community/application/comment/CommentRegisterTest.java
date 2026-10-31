@@ -141,7 +141,7 @@ public class CommentRegisterTest {
             assertThatThrownBy(
                     () -> commentRegister.modify(post.post().getId(), member.getId(), commentDetail.comment().getId(), CommentFixture.modifyCommentRequest())
             ).isInstanceOf(NotAuthorException.class)
-                    .hasMessage("작성자만 수정할 수 있습니다.");
+                    .hasMessage("작성자가 아닙니다.");
         }
 
         @Test
@@ -167,14 +167,14 @@ public class CommentRegisterTest {
 
         @Test
         void 성공_숨김() {
-            commentRegister.hide(post.post().getId(), member.getId(), commentDetail.comment().getId());
+            commentRegister.changeStatus(post.post().getId(), member.getId(), commentDetail.comment().getId(), CommentStatus.HIDDEN);
 
             assertThat(commentDetail.comment().getStatus()).isEqualTo(CommentStatus.HIDDEN);
         }
 
         @Test
         void 성공_정지() {
-            commentRegister.suspend(post.post().getId(), member.getId(), commentDetail.comment().getId());
+            commentRegister.changeStatus(post.post().getId(), member.getId(), commentDetail.comment().getId(), CommentStatus.SUSPENDED);
 
             commentDetail.comment().suspend();
 
@@ -183,11 +183,11 @@ public class CommentRegisterTest {
 
         @Test
         void 성공_게시() {
-            commentDetail.comment().hide();
+            commentRegister.changeStatus(post.post().getId(), member.getId(), commentDetail.comment().getId(), CommentStatus.HIDDEN);
 
             assertThat(commentDetail.comment().getStatus()).isEqualTo(CommentStatus.HIDDEN);
 
-            commentDetail.comment().postComment();
+            commentRegister.changeStatus(post.post().getId(), member.getId(), commentDetail.comment().getId(), CommentStatus.POSTED);
 
             assertThat(commentDetail.comment().getStatus()).isEqualTo(CommentStatus.POSTED);
         }
@@ -195,21 +195,19 @@ public class CommentRegisterTest {
         @Test
         void 실패_작성자_외의_변경() {
             assertThatThrownBy(
-                    () -> commentRegister.hide(post.post().getId(), anotherMember.getId(), commentDetail.comment().getId())
+                    () -> commentRegister.changeStatus(post.post().getId(), anotherMember.getId(), commentDetail.comment().getId(), CommentStatus.HIDDEN)
             ).isInstanceOf(NotAuthorException.class)
-                    .hasMessage("작성자만 수정할 수 있습니다.");
+                    .hasMessage("작성자가 아닙니다.");
 
             assertThatThrownBy(
-                    () -> commentRegister.suspend(post.post().getId(), anotherMember.getId(), commentDetail.comment().getId())
+                    () -> commentRegister.changeStatus(post.post().getId(), anotherMember.getId(), commentDetail.comment().getId(), CommentStatus.SUSPENDED)
             ).isInstanceOf(NotAuthorException.class)
-                    .hasMessage("작성자만 수정할 수 있습니다.");
+                    .hasMessage("작성자가 아닙니다.");
 
             assertThatThrownBy(
-                    () -> commentRegister.postComment(post.post().getId(), anotherMember.getId(), commentDetail.comment().getId())
+                    () -> commentRegister.changeStatus(post.post().getId(), anotherMember.getId(), commentDetail.comment().getId(), CommentStatus.POSTED)
             ).isInstanceOf(NotAuthorException.class)
-                    .hasMessage("작성자만 수정할 수 있습니다.");
+                    .hasMessage("작성자가 아닙니다.");
         }
-
-
     }
 }

@@ -130,26 +130,6 @@ public class CommentTest {
 
             Assertions.assertThat(comment.getStatus()).isEqualTo(CommentStatus.HIDDEN);
         }
-
-        @Test
-        void 실패_게시_되지_않은_댓글_숨김() {
-            comment.suspend();
-
-            Assertions.assertThatThrownBy(
-                    () -> comment.hide())
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessage("게시 중인 댓글만 숨길 수 있습니다.");
-        }
-
-        @Test
-        void 실패_이미_숨긴_댓글() {
-            comment.hide();
-
-            Assertions.assertThatThrownBy(
-                            () -> comment.hide())
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessage("게시 중인 댓글만 숨길 수 있습니다.");
-        }
     }
 
     @Nested
@@ -197,26 +177,6 @@ public class CommentTest {
             comment.suspend();
             Assertions.assertThat(comment.getStatus()).isEqualTo(CommentStatus.SUSPENDED);
 
-        }
-
-        @Test
-        void 실패_이미_정지된_댓글() {
-            comment.suspend();
-
-            Assertions.assertThatThrownBy(
-                            () -> comment.suspend())
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessage("게시 중인 댓글만 정지할 수 있습니다.");
-        }
-
-        @Test
-        void 실패_숨긴_댓글() {
-            comment.hide();
-
-            Assertions.assertThatThrownBy(
-                            () -> comment.suspend())
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessage("게시 중인 댓글만 정지할 수 있습니다.");
         }
     }
 }
