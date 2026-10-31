@@ -29,29 +29,33 @@ public class CommentController {
     private final CommentRegister commentRegister;
     private final TokenManager tokenManager;
 
-    @PostMapping("/{postId}")
+    @PostMapping("/create/{postId}")
     public CommentResponseDto createComment(
-            @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
+            @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token,
             @PathVariable Long postId,
-            @RequestBody CreateCommentRequest request
+            @RequestBody(required = false) CreateCommentRequest request
     ) {
         String extractedToken = TokenExtractor.extractToken(token);
         Long memberId = tokenManager.extractMemberIdFromToken(extractedToken);
+
+        if(request == null) throw new IllegalArgumentException("누락된 필드가 없어야 합니다.");
 
         CommentDetail commentDetail = commentRegister.create(postId, memberId, request);
 
         return CommentResponseDto.mapper(commentDetail);
     }
 
-    @PutMapping("/{postId}/{commentId}")
+    @PutMapping("/modify/{postId}/{commentId}")
     public CommentResponseDto modifyComment(
-            @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
+            @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token,
             @PathVariable Long postId,
             @PathVariable Long commentId,
-            @RequestBody ModifyCommentRequest request
+            @RequestBody(required = false) ModifyCommentRequest request
     ) {
         String extractedToken = TokenExtractor.extractToken(token);
         Long memberId = tokenManager.extractMemberIdFromToken(extractedToken);
+
+        if(request == null) throw new IllegalArgumentException("누락된 필드가 없어야 합니다.");
 
         CommentDetail commentDetail = commentRegister.modify(postId, memberId, commentId, request);
 
@@ -59,9 +63,9 @@ public class CommentController {
 
     }
 
-    @PutMapping("/{postId}/{commentId}/{status}")
+    @PutMapping("/change-status/{postId}/{commentId}/{status}")
     public CommentResponseDto changeCommentStatus(
-            @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
+            @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token,
             @PathVariable Long postId,
             @PathVariable Long commentId,
             @PathVariable CommentStatus status
@@ -74,9 +78,9 @@ public class CommentController {
         return CommentResponseDto.mapper(commentDetail);
     }
 
-    @DeleteMapping("/{commentId}")
+    @DeleteMapping("/delete/{commentId}")
     public boolean deleteComment(
-            @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
+            @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token,
             @PathVariable Long commentId
     ) {
         String extractedToken = TokenExtractor.extractToken(token);
@@ -85,12 +89,21 @@ public class CommentController {
         return commentRegister.delete(memberId, commentId);
     }
 
-    @GetMapping("/{postId}")
+    @GetMapping("post/{postId}")
     public List<CommentResponseDto> getComments(
             @PathVariable Long postId
     ) {
         List<CommentDetail> commentDetailsByPostId = commentFinder.getCommentsByPostId(postId);
 
         return commentDetailsByPostId.stream().map(CommentResponseDto::mapper).collect(Collectors.toList());
+    }
+
+    @GetMapping("/{commentId}")
+    public CommentResponseDto getComment(
+            @PathVariable Long commentId
+    ) {
+        CommentDetail commentById = commentFinder.getCommentById(commentId);
+
+        return CommentResponseDto.mapper(commentById);
     }
 }
