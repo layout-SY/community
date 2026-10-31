@@ -81,12 +81,12 @@ public class CommentModifyService implements CommentRegister {
     }
 
     @Override
-    public boolean delete(Long postId, Long memberId, Long commentId) {
-        Member memberById = isActivateMemberValidation(memberId);
+    public boolean delete(Long memberId, Long commentId) {
+        isActivateMemberValidation(memberId);
 
-        Post postById = isPostedPostValidation(postId);
+        Comment commentById = commentFinder.getCommentById(commentId).comment();
 
-        Comment commentById = commentValidation(postId, memberId, commentId);
+        if(!commentById.getMemberId().equals(memberId)) throw new NotAuthorException("작성자가 아닙니다.");
 
         commentRepository.deleteById(commentById.getId());
 

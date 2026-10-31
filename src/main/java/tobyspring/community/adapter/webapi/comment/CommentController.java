@@ -74,16 +74,15 @@ public class CommentController {
         return CommentResponseDto.mapper(commentDetail);
     }
 
-    @DeleteMapping("/{postId}/{commentId}")
+    @DeleteMapping("/{commentId}")
     public boolean deleteComment(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
-            @PathVariable Long postId,
             @PathVariable Long commentId
     ) {
         String extractedToken = TokenExtractor.extractToken(token);
         Long memberId = tokenManager.extractMemberIdFromToken(extractedToken);
 
-        return commentRegister.delete(postId, memberId, commentId);
+        return commentRegister.delete(memberId, commentId);
     }
 
     @GetMapping("/{postId}")

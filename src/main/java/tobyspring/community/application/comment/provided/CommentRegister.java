@@ -13,7 +13,7 @@ public interface CommentRegister {
 
     CommentDetail changeStatus(Long postId, Long memberId, Long commentId, CommentStatus status);
 
-    boolean delete(Long postId, Long memberId, Long commentId);
+    boolean delete(Long memberId, Long commentId);
 
 //    CommentDetail postComment(Long postId, Long memberId, Long commentId);
 //
