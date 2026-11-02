@@ -3,6 +3,8 @@ package tobyspring.community.domain.member;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -48,7 +50,13 @@ public class MemberDetail extends EntityAbstract {
     }
 
     public void updateInfo(MemberDetailRequest detailRequest) {
-        this.profile = new Profile(detailRequest.profile());
+        this.profile = convertProfile(detailRequest.profile());
         this.introduction = detailRequest.introduction();
+    }
+
+    private Profile convertProfile(@NotNull @Size(max = 15) String profile_address) {
+        if(profile_address == null || profile_address.isEmpty()) return null;
+
+        return new Profile(profile_address);
     }
 }
